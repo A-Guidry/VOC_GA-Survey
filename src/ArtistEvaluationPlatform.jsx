@@ -308,33 +308,7 @@ export default function App() {
         };
     }, []);
 
-    const defaultDemoSurvey = {
-        id: 'survey-demo',
-        name: 'Demo Evaluation',
-        dateCreated: new Date().toISOString().split('T')[0],
-        status: 'published',
-        clips: [
-            { id: 'c1', title: 'Test Animation 01', adminTitle: '', url: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ' }
-        ]
-    };
-
-    const defaultDemoResponse = {
-        'survey-demo': [{
-            id: 'resp-demo-1',
-            date: new Date().toISOString().split('T')[0],
-            artist: { name: 'Jane Doe', email: 'jane@example.com', company: 'BXD Studios', role: 'Lead Animator' },
-            answers: {
-                'c1': {
-                    rating: '2. I can use it with making minor/acceptable edits',
-                    issues: ['Foot Skating', 'Jitter'],
-                    other: 'Slight clipping on the shoulder'
-                }
-            }
-        }]
-    };
-
     const [surveys, setSurveys] = useState([]);
-    const [responsesBySurvey, setResponsesBySurvey] = useState({});
     const [activeAdminSurveyId, setActiveAdminSurveyId] = useState(null);
 
     // 0. Load survey from URL ?id= param, or fall back to public/surveys/default.json
@@ -373,31 +347,29 @@ export default function App() {
             });
     }, []);
 
-    // 1. Initial Load from LocalStorage
+    // 1. Load surveys from committed JSON files in public/surveys/
     useEffect(() => {
-        const savedSurveys = localStorage.getItem('bxd_surveys');
-        const savedResponses = localStorage.getItem('bxd_responses');
-
-        if (savedSurveys) {
-            setSurveys(JSON.parse(savedSurveys));
-            setResponsesBySurvey(savedResponses ? JSON.parse(savedResponses) : {});
-            const parsedSurveys = JSON.parse(savedSurveys);
-            if (parsedSurveys.length > 0) setActiveAdminSurveyId(parsedSurveys[0].id);
-        } else {
-            // First time load - seed with demo data
-            setSurveys([defaultDemoSurvey]);
-            setResponsesBySurvey(defaultDemoResponse);
-            setActiveAdminSurveyId(defaultDemoSurvey.id);
-        }
-        setIsLoaded(true);
+        const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+        fetch(`${base}/surveys/index.json`)
+            .then(r => r.json())
+            .then(index => {
+                const ids = Array.isArray(index.surveys) ? index.surveys : [];
+                return Promise.all(
+                    ids.map(id =>
+                        fetch(`${base}/surveys/${id}.json`)
+                            .then(r => r.ok ? r.json() : null)
+                            .catch(() => null)
+                    )
+                );
+            })
+            .then(loaded => {
+                const valid = loaded.filter(Boolean);
+                setSurveys(valid);
+                if (valid.length > 0) setActiveAdminSurveyId(valid[0].id);
+            })
+            .catch(err => console.error('Failed to load surveys from index.json:', err))
+            .finally(() => setIsLoaded(true));
     }, []);
-
-    // 2. React to State Changes -> Save to LocalStorage
-    useEffect(() => {
-        if (!isLoaded) return;
-        localStorage.setItem('bxd_surveys', JSON.stringify(surveys));
-        localStorage.setItem('bxd_responses', JSON.stringify(responsesBySurvey));
-    }, [surveys, responsesBySurvey, isLoaded]);
 
     // Random distribution: each new browser session gets a randomly assigned published survey.
     // sessionStorage keeps the assignment stable if the page is refreshed mid-evaluation.
@@ -917,25 +889,28 @@ function AdminDashboard({ surveys, setSurveys, activeAdminSurveyId, setActiveAdm
         setSurveys(surveys.map(s => s.id === activeAdminSurveyId ? { ...s, clips: updatedClips } : s));
     };
 
-    const exportSurveyJSON = () => {
+    const saveToFile = () => {
         if (!activeAdminSurvey) return;
 
-        // Strip out any administrative state that doesn't need to be in the final JSON file
-        const exportPayload = {
-            id: activeAdminSurvey.id || `survey-${Date.now()}`,
-            name: activeAdminSurvey.name,
-            clips: activeAdminSurvey.clips
+        const dl = (filename, data) => {
+            const blob = new Blob([JSON.stringify(data, null, 4)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         };
 
-        const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `${activeAdminSurvey.id || 'survey-definition'}.json`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // 1. Download the individual survey file
+        const surveyData = { ...activeAdminSurvey };
+        dl(`${activeAdminSurvey.id}.json`, surveyData);
+
+        // 2. Download the updated index.json (staggered to avoid popup blockers)
+        const allIds = surveys.map(s => s.id);
+        if (!allIds.includes(activeAdminSurvey.id)) allIds.push(activeAdminSurvey.id);
+        setTimeout(() => dl('index.json', { surveys: allIds }), 500);
     };
 
     return (
@@ -1054,8 +1029,8 @@ function AdminDashboard({ surveys, setSurveys, activeAdminSurveyId, setActiveAdm
                     <div className="section-header-row">
                         <h2 className="section-title" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>Clips to Evaluate: {activeAdminSurvey.name}</h2>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button onClick={exportSurveyJSON} className="btn-secondary" title="Download JSON to commit to GitHub">
-                                <Download size={16} /> Export JSON
+                            <button onClick={saveToFile} className="btn-secondary" title="Download JSON files → put in public/surveys/ → commit">
+                                <Download size={16} /> Save to File
                             </button>
                             <button onClick={addClip} className="btn-secondary">
                                 <Plus size={16} /> Add Clip
