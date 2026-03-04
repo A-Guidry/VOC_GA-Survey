@@ -192,6 +192,8 @@ const STYLESHEET = `
 .w-48 { width: 12rem; max-width: 12rem; }
 .issues-pill { background-color: rgba(39, 39, 42, 0.5); padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; }
 
+.external-survey-badge { background-color: rgba(168, 85, 247, 0.2); color: #c084fc; font-size: 0.65rem; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-weight: 600; text-transform: uppercase; margin-left: 0.5rem; }
+
 /* Animations */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUpFadeIn { from { opacity: 0; transform: translateY(1rem); } to { opacity: 1; transform: translateY(0); } }
@@ -273,6 +275,9 @@ const ADMIN_PASSCODE = "bxd2026"; // Hardcoded for MVP
 export default function App() {
     const [appMode, setAppMode] = useState('user');
     const [isLoaded, setIsLoaded] = useState(false);
+    const [externalSurvey, setExternalSurvey] = useState(null);
+    const [externalError, setExternalError] = useState(null);
+    const [isExternalLoading, setIsExternalLoading] = useState(false);
 
     // Inject CSS dynamically into the <head> to ensure it loads in sandbox environments
     useEffect(() => {
@@ -322,6 +327,38 @@ export default function App() {
     const [responsesBySurvey, setResponsesBySurvey] = useState({});
     const [activeAdminSurveyId, setActiveAdminSurveyId] = useState(null);
 
+    // 0. Check for External Survey via URL Query Parameter ?id=
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const surveyId = urlParams.get('id');
+
+        if (surveyId) {
+            setIsExternalLoading(true);
+            // In Vite/React, public assets are served from the base path.
+            // On GitHub Pages, this will be /VOC_GA-Survey/surveys/surveyId.json
+            const basePath = import.meta.env.BASE_URL || '/';
+            const fetchUrl = `${basePath.replace(/\/$/, '')}/surveys/${surveyId}.json`;
+
+            fetch(fetchUrl)
+                .then(res => {
+                    if (!res.ok) throw new Error(`Could not locate survey configuration for "${surveyId}". HTTP ${res.status}`);
+                    return res.json();
+                })
+                .then(data => {
+                    // Validations to ensure it's a valid layout object
+                    if (!data.id || !data.clips) throw new Error(`Survey file "${surveyId}.json" is missing required configuration data.`);
+                    setExternalSurvey(data);
+                })
+                .catch(err => {
+                    console.error("External Survey Load Error:", err);
+                    setExternalError(err.message);
+                })
+                .finally(() => {
+                    setIsExternalLoading(false);
+                });
+        }
+    }, []);
+
     // 1. Initial Load from LocalStorage
     useEffect(() => {
         const savedSurveys = localStorage.getItem('bxd_surveys');
@@ -348,10 +385,46 @@ export default function App() {
         localStorage.setItem('bxd_responses', JSON.stringify(responsesBySurvey));
     }, [surveys, responsesBySurvey, isLoaded]);
 
-    const activePublicSurvey = surveys.find(s => s.status === 'active') || surveys[0];
+    const activePublicSurvey = externalSurvey || (surveys.find(s => s.status === 'active') || surveys[0]);
 
-    const handleUserSubmit = (newResponse) => {
+    const handleUserSubmit = async (newResponse) => {
         if (!activePublicSurvey) return;
+
+        // If this is an external JSON survey, submit payload formally to Formspree endpoint securely
+        if (externalSurvey) {
+            try {
+                const formspreeEndpoint = 'https://formspree.io/f/mqkenryb'; // Formspree URL for GA-Survey
+
+                // We add the survey name to the payload so it's clear in the formspree dashboard
+                const submissionPayload = {
+                    ...newResponse,
+                    _subject: `New Survey Response: ${externalSurvey.name}`
+                };
+
+                const res = await fetch(formspreeEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(submissionPayload)
+                });
+
+                if (!res.ok) {
+                    throw new Error(`Failed to submit: ${res.statusText}`);
+                }
+
+                // Success! The response is safely delivered to the Formspree inbox without touching LocalStorage.
+                console.log("Successfully submitted response to Formspree.");
+                return;
+            } catch (error) {
+                console.error("Formspree Submission Error:", error);
+                alert("There was an error submitting your response remotely. Please try again or contact the administrator.");
+                throw error; // Throw so UserEvaluationFlow catches it and stops progression
+            }
+        }
+
+        // Otherwise, save to local storage (for admin local tests)
         setResponsesBySurvey(prev => ({
             ...prev,
             [activePublicSurvey.id]: [...(prev[activePublicSurvey.id] || []), newResponse]
@@ -409,6 +482,7 @@ export default function App() {
                             <MonitorPlay size={16} />
                             <span className="sm-inline">BXD Motion Capture Quality Evaluation</span>
                             <span className="sm-hidden">BXD EVAL</span>
+                            {externalSurvey && <span className="external-survey-badge">URL OVERRIDE</span>}
                         </div>
                         <div className="header-controls">
                             <button
@@ -427,16 +501,29 @@ export default function App() {
                     </div>
 
                     <div className="main-content">
-                        {appMode === 'user' && (
+                        {isExternalLoading ? (
+                            <div className="intro-screen">
+                                <div className="intro-content" style={{ textAlign: 'center' }}>
+                                    <h1 className="intro-title" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Loading Survey Configuration...</h1>
+                                    <p className="intro-subtitle">Fetching data from GitHub repository.</p>
+                                </div>
+                            </div>
+                        ) : externalError && appMode === 'user' ? (
+                            <div className="intro-screen">
+                                <div className="intro-content" style={{ textAlign: 'center' }}>
+                                    <h1 className="intro-title" style={{ fontSize: '2rem', color: '#f87171' }}>Survey Not Found</h1>
+                                    <p className="intro-subtitle" style={{ color: '#ef4444' }}>{externalError}</p>
+                                    <p style={{ color: '#a1a1aa', fontSize: '0.875rem', marginTop: '2rem' }}>Check the ?id= parameter in your URL and ensure the .json file exists in the repository's public/surveys/ directory.</p>
+                                </div>
+                            </div>
+                        ) : appMode === 'user' ? (
                             <UserEvaluationFlow
                                 survey={activePublicSurvey}
                                 onSubmit={handleUserSubmit}
                             />
-                        )}
-                        {appMode === 'admin_auth' && (
+                        ) : appMode === 'admin_auth' ? (
                             <AdminAuthScreen onSuccess={() => setAppMode('admin')} />
-                        )}
-                        {appMode === 'admin' && (
+                        ) : appMode === 'admin' ? (
                             <AdminDashboard
                                 surveys={surveys}
                                 setSurveys={setSurveys}
@@ -445,7 +532,7 @@ export default function App() {
                                 setActiveAdminSurveyId={setActiveAdminSurveyId}
                                 onDownload={downloadCSV}
                             />
-                        )}
+                        ) : null}
                     </div>
                 </>
             )}
@@ -545,16 +632,23 @@ function UserEvaluationFlow({ survey, onSubmit }) {
 
         if (step === survey.clips.length - 1) {
             setIsSubmitting(true);
-            setTimeout(() => {
-                onSubmit({
-                    id: `resp-${Date.now()}`,
-                    date: new Date().toISOString().split('T')[0],
-                    artist: artistData,
-                    answers: answers
+            const finalPayload = {
+                id: `resp-${Date.now()}`,
+                date: new Date().toISOString().split('T')[0],
+                artist: artistData,
+                answers: answers
+            };
+
+            Promise.resolve(onSubmit(finalPayload))
+                .then(() => {
+                    setStep(step + 1);
+                })
+                .catch(err => {
+                    console.error("Submission failed:", err);
+                })
+                .finally(() => {
+                    setIsSubmitting(false);
                 });
-                setStep(step + 1);
-                setIsSubmitting(false);
-            }, 800);
         } else {
             setStep(step + 1);
             window.scrollTo(0, 0);
@@ -816,6 +910,27 @@ function AdminDashboard({ surveys, setSurveys, responsesBySurvey, activeAdminSur
         setSurveys(surveys.map(s => s.id === activeAdminSurveyId ? { ...s, clips: updatedClips } : s));
     };
 
+    const exportSurveyJSON = () => {
+        if (!activeAdminSurvey) return;
+
+        // Strip out any administrative state that doesn't need to be in the final JSON file
+        const exportPayload = {
+            id: activeAdminSurvey.id || `survey-${Date.now()}`,
+            name: activeAdminSurvey.name,
+            clips: activeAdminSurvey.clips
+        };
+
+        const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `${activeAdminSurvey.id || 'survey-definition'}.json`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="admin-screen">
             <div className="admin-header">
@@ -911,17 +1026,16 @@ function AdminDashboard({ surveys, setSurveys, responsesBySurvey, activeAdminSur
 
             {activeTab === 'config' && activeAdminSurveyId && (
                 <div style={{ animation: 'fadeIn 0.3s' }}>
-                    <div className="admin-note">
-                        <p className="admin-note-text">
-                            <strong>Note:</strong> Each clip added below will automatically be paired with the standard BXD Quality Questions (Rating & Issues).
-                        </p>
-                    </div>
-
                     <div className="section-header-row">
-                        <h2 className="section-title">Clips to Evaluate</h2>
-                        <button onClick={addClip} className="btn-secondary">
-                            <Plus size={16} /> Add Clip
-                        </button>
+                        <h2 className="section-title" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>Clips to Evaluate: {activeAdminSurvey.name}</h2>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button onClick={exportSurveyJSON} className="btn-secondary" title="Download JSON to commit to GitHub">
+                                <Download size={16} /> Export JSON
+                            </button>
+                            <button onClick={addClip} className="btn-secondary">
+                                <Plus size={16} /> Add Clip
+                            </button>
+                        </div>
                     </div>
 
                     <div className="clip-list">
