@@ -139,6 +139,18 @@ const STYLESHEET = `
 .section-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 .section-title { font-size: 1.25rem; font-weight: 500; color: #ffffff; margin: 0; }
 
+.survey-list { display: flex; flex-direction: column; gap: 1rem; }
+.survey-item { background-color: rgba(24, 24, 27, 0.5); border: 1px solid #27272a; padding: 1.25rem; border-radius: 0.75rem; display: flex; justify-content: space-between; align-items: center; transition: border-color 0.2s; }
+.survey-item:hover { border-color: #3f3f46; }
+.survey-item-active { border-color: #3b82f6; background-color: rgba(59, 130, 246, 0.05); }
+.survey-info { display: flex; flex-direction: column; gap: 0.25rem; }
+.survey-name { font-weight: 500; color: #ffffff; font-size: 1.125rem; }
+.survey-meta { color: #71717a; font-size: 0.875rem; display: flex; gap: 1rem; }
+.survey-status { padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.status-active { background-color: rgba(34, 197, 94, 0.2); color: #4ade80; }
+.status-draft { background-color: rgba(161, 161, 170, 0.2); color: #a1a1aa; }
+.survey-actions { display: flex; gap: 0.75rem; }
+
 .clip-list { display: flex; flex-direction: column; gap: 1rem; }
 .clip-item { background-color: rgba(24, 24, 27, 0.5); border: 1px solid #27272a; padding: 1.25rem; border-radius: 0.75rem; display: flex; gap: 1rem; transition: border-color 0.2s; }
 .clip-item:hover { border-color: #3f3f46; }
@@ -260,6 +272,7 @@ const ADMIN_PASSCODE = "bxd2026"; // Hardcoded for MVP
 
 export default function App() {
     const [appMode, setAppMode] = useState('user');
+    const [isLoaded, setIsLoaded] = useState(false);
 
     // Inject CSS dynamically into the <head> to ensure it loads in sandbox environments
     useEffect(() => {
@@ -280,15 +293,19 @@ export default function App() {
         };
     }, []);
 
-    const [testConfig, setTestConfig] = useState({
+    const defaultDemoSurvey = {
+        id: 'survey-demo',
+        name: 'Demo Evaluation',
+        dateCreated: new Date().toISOString().split('T')[0],
+        status: 'active',
         clips: [
             { id: 'c1', title: 'Test Animation 01', adminTitle: '', url: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ' }
         ]
-    });
+    };
 
-    const [responses, setResponses] = useState([
-        {
-            id: 'demo-1',
+    const defaultDemoResponse = {
+        'survey-demo': [{
+            id: 'resp-demo-1',
             date: new Date().toISOString().split('T')[0],
             artist: { name: 'Jane Doe', email: 'jane@example.com', company: 'BXD Studios', role: 'Lead Animator' },
             answers: {
@@ -298,12 +315,57 @@ export default function App() {
                     other: 'Slight clipping on the shoulder'
                 }
             }
+        }]
+    };
+
+    const [surveys, setSurveys] = useState([]);
+    const [responsesBySurvey, setResponsesBySurvey] = useState({});
+    const [activeAdminSurveyId, setActiveAdminSurveyId] = useState(null);
+
+    // 1. Initial Load from LocalStorage
+    useEffect(() => {
+        const savedSurveys = localStorage.getItem('bxd_surveys');
+        const savedResponses = localStorage.getItem('bxd_responses');
+
+        if (savedSurveys) {
+            setSurveys(JSON.parse(savedSurveys));
+            setResponsesBySurvey(savedResponses ? JSON.parse(savedResponses) : {});
+            const parsedSurveys = JSON.parse(savedSurveys);
+            if (parsedSurveys.length > 0) setActiveAdminSurveyId(parsedSurveys[0].id);
+        } else {
+            // First time load - seed with demo data
+            setSurveys([defaultDemoSurvey]);
+            setResponsesBySurvey(defaultDemoResponse);
+            setActiveAdminSurveyId(defaultDemoSurvey.id);
         }
-    ]);
+        setIsLoaded(true);
+    }, []);
+
+    // 2. React to State Changes -> Save to LocalStorage
+    useEffect(() => {
+        if (!isLoaded) return;
+        localStorage.setItem('bxd_surveys', JSON.stringify(surveys));
+        localStorage.setItem('bxd_responses', JSON.stringify(responsesBySurvey));
+    }, [surveys, responsesBySurvey, isLoaded]);
+
+    const activePublicSurvey = surveys.find(s => s.status === 'active') || surveys[0];
+
+    const handleUserSubmit = (newResponse) => {
+        if (!activePublicSurvey) return;
+        setResponsesBySurvey(prev => ({
+            ...prev,
+            [activePublicSurvey.id]: [...(prev[activePublicSurvey.id] || []), newResponse]
+        }));
+    };
 
     const downloadCSV = () => {
+        const activeAdminSurvey = surveys.find(s => s.id === activeAdminSurveyId);
+        if (!activeAdminSurvey) return;
+
+        const currentResponses = responsesBySurvey[activeAdminSurveyId] || [];
+
         const headers = ['Date', 'Name', 'Email', 'Company', 'Role'];
-        testConfig.clips.forEach((c, i) => {
+        activeAdminSurvey.clips.forEach((c, i) => {
             headers.push(`Clip ${i + 1}: Admin Title`);
             headers.push(`Clip ${i + 1}: Title`);
             headers.push(`Clip ${i + 1}: Rating`);
@@ -313,10 +375,10 @@ export default function App() {
 
         let csvContent = headers.map(escapeCSV).join(',') + '\n';
 
-        responses.forEach(r => {
+        currentResponses.forEach(r => {
             const row = [r.date, r.artist.name, r.artist.email, r.artist.company, r.artist.role];
 
-            testConfig.clips.forEach(c => {
+            activeAdminSurvey.clips.forEach(c => {
                 const ans = r.answers[c.id] || { rating: '', issues: [], other: '' };
                 row.push(c.adminTitle || '');
                 row.push(c.title || '');
@@ -331,7 +393,7 @@ export default function App() {
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', `BXD_Mocap_Evaluations_${new Date().getTime()}.csv`);
+        link.setAttribute('download', `BXD_${activeAdminSurvey.name.replace(/\s+/g, '_')}_Responses.csv`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
@@ -340,47 +402,53 @@ export default function App() {
 
     return (
         <div className="app-wrapper">
-            <div className="header-container">
-                <div className="header-brand">
-                    <MonitorPlay size={16} />
-                    <span className="sm-inline">BXD Motion Capture Quality Evaluation</span>
-                    <span className="sm-hidden">BXD EVAL</span>
-                </div>
-                <div className="header-controls">
-                    <button
-                        onClick={() => setAppMode('user')}
-                        className={`mode-btn ${appMode === 'user' ? 'mode-btn-active' : ''}`}
-                    >
-                        Preview Test
-                    </button>
-                    <button
-                        onClick={() => setAppMode(appMode === 'admin' ? 'admin' : 'admin_auth')}
-                        className={`mode-btn ${appMode === 'admin' || appMode === 'admin_auth' ? 'mode-btn-admin-active' : ''}`}
-                    >
-                        Admin Dashboard
-                    </button>
-                </div>
-            </div>
+            {!isLoaded ? null : (
+                <>
+                    <div className="header-container">
+                        <div className="header-brand">
+                            <MonitorPlay size={16} />
+                            <span className="sm-inline">BXD Motion Capture Quality Evaluation</span>
+                            <span className="sm-hidden">BXD EVAL</span>
+                        </div>
+                        <div className="header-controls">
+                            <button
+                                onClick={() => setAppMode('user')}
+                                className={`mode-btn ${appMode === 'user' ? 'mode-btn-active' : ''}`}
+                            >
+                                Preview Test
+                            </button>
+                            <button
+                                onClick={() => setAppMode(appMode === 'admin' ? 'admin' : 'admin_auth')}
+                                className={`mode-btn ${appMode === 'admin' || appMode === 'admin_auth' ? 'mode-btn-admin-active' : ''}`}
+                            >
+                                Admin Dashboard
+                            </button>
+                        </div>
+                    </div>
 
-            <div className="main-content">
-                {appMode === 'user' && (
-                    <UserEvaluationFlow
-                        config={testConfig}
-                        onSubmit={(newResponse) => setResponses([...responses, newResponse])}
-                    />
-                )}
-                {appMode === 'admin_auth' && (
-                    <AdminAuthScreen onSuccess={() => setAppMode('admin')} />
-                )}
-                {appMode === 'admin' && (
-                    <AdminDashboard
-                        config={testConfig}
-                        setConfig={setTestConfig}
-                        responses={responses}
-                        onDownload={downloadCSV}
-                    />
-                )}
-            </div>
+                    <div className="main-content">
+                        {appMode === 'user' && (
+                            <UserEvaluationFlow
+                                survey={activePublicSurvey}
+                                onSubmit={handleUserSubmit}
+                            />
+                        )}
+                        {appMode === 'admin_auth' && (
+                            <AdminAuthScreen onSuccess={() => setAppMode('admin')} />
+                        )}
+                        {appMode === 'admin' && (
+                            <AdminDashboard
+                                surveys={surveys}
+                                setSurveys={setSurveys}
+                                responsesBySurvey={responsesBySurvey}
+                                activeAdminSurveyId={activeAdminSurveyId}
+                                setActiveAdminSurveyId={setActiveAdminSurveyId}
+                                onDownload={downloadCSV}
+                            />
+                        )}
+                    </div>
+                </>
+            )}
         </div>
     );
 }
@@ -436,7 +504,17 @@ function AdminAuthScreen({ onSuccess }) {
 // ==========================================
 // USER EVALUATION FLOW
 // ==========================================
-function UserEvaluationFlow({ config, onSubmit }) {
+function UserEvaluationFlow({ survey, onSubmit }) {
+    if (!survey || !survey.clips || survey.clips.length === 0) {
+        return (
+            <div className="intro-screen">
+                <div className="intro-content">
+                    <h1 className="intro-title">No Active Survey</h1>
+                    <p className="intro-subtitle">There is currently no animation survey configured. Please visit the admin dashboard.</p>
+                </div>
+            </div>
+        );
+    }
     const [step, setStep] = useState(-1);
     const [artistData, setArtistData] = useState({ name: '', email: '', company: '', role: '' });
     const [answers, setAnswers] = useState({});
@@ -448,8 +526,8 @@ function UserEvaluationFlow({ config, onSubmit }) {
             return;
         }
 
-        if (step >= 0 && step < config.clips.length) {
-            const currentClip = config.clips[step];
+        if (step >= 0 && step < survey.clips.length) {
+            const currentClip = survey.clips[step];
             const currentAnswer = answers[currentClip.id];
             if (!currentAnswer || !currentAnswer.rating) {
                 alert("Please rate the animation before proceeding.");
@@ -465,7 +543,7 @@ function UserEvaluationFlow({ config, onSubmit }) {
             }
         }
 
-        if (step === config.clips.length - 1) {
+        if (step === survey.clips.length - 1) {
             setIsSubmitting(true);
             setTimeout(() => {
                 onSubmit({
@@ -536,7 +614,7 @@ function UserEvaluationFlow({ config, onSubmit }) {
         );
     }
 
-    if (step === config.clips.length) {
+    if (step === survey.clips.length) {
         return (
             <div className="outro-screen">
                 <div className="outro-content">
@@ -550,11 +628,11 @@ function UserEvaluationFlow({ config, onSubmit }) {
         );
     }
 
-    const currentClip = config.clips[step];
+    const currentClip = survey.clips[step];
     const clipAnswer = answers[currentClip.id] || { rating: '', issues: [], other: '' };
     const embedUrl = getEmbedUrl(currentClip.url);
     const useIframe = embedUrl.includes('/embed/') || embedUrl.includes('/preview');
-    const progressPercent = ((step) / config.clips.length) * 100;
+    const progressPercent = ((step) / survey.clips.length) * 100;
 
     return (
         <div className="eval-screen">
@@ -565,7 +643,7 @@ function UserEvaluationFlow({ config, onSubmit }) {
 
             <div className="clip-header">
                 <div className="clip-counter">
-                    CLIP {step + 1} OF {config.clips.length}
+                    CLIP {step + 1} OF {survey.clips.length}
                 </div>
                 <div className="clip-title">
                     {currentClip.title}
@@ -659,8 +737,8 @@ function UserEvaluationFlow({ config, onSubmit }) {
                         disabled={isSubmitting || !clipAnswer.rating}
                         className="btn-primary"
                     >
-                        {isSubmitting ? 'Saving...' : step === config.clips.length - 1 ? 'Submit Evaluation' : 'Next Clip'}
-                        {step === config.clips.length - 1 ? <Check size={20} /> : <ArrowRight size={20} />}
+                        {isSubmitting ? 'Saving...' : step === survey.clips.length - 1 ? 'Submit Evaluation' : 'Next Clip'}
+                        {step === survey.clips.length - 1 ? <Check size={20} /> : <ArrowRight size={20} />}
                     </button>
                 </div>
 
@@ -672,29 +750,70 @@ function UserEvaluationFlow({ config, onSubmit }) {
 // ==========================================
 // ADMIN DASHBOARD
 // ==========================================
-function AdminDashboard({ config, setConfig, responses, onDownload }) {
-    const [activeTab, setActiveTab] = useState('config');
+function AdminDashboard({ surveys, setSurveys, responsesBySurvey, activeAdminSurveyId, setActiveAdminSurveyId, onDownload }) {
+    const [activeTab, setActiveTab] = useState('surveys');
+
+    const activeAdminSurvey = surveys.find(s => s.id === activeAdminSurveyId);
+    const currentResponses = responsesBySurvey[activeAdminSurveyId] || [];
+
+    const createSurvey = () => {
+        const newSurvey = {
+            id: `survey-${Date.now()}`,
+            name: `New Survey ${surveys.length + 1}`,
+            dateCreated: new Date().toISOString().split('T')[0],
+            status: 'draft',
+            clips: []
+        };
+        setSurveys([...surveys, newSurvey]);
+        setActiveAdminSurveyId(newSurvey.id);
+        setActiveTab('config');
+    };
+
+    const deleteSurvey = (id) => {
+        if (window.confirm('Are you sure you want to delete this survey and all collected responses? This cannot be undone.')) {
+            const updatedSurveys = surveys.filter(s => s.id !== id);
+            setSurveys(updatedSurveys);
+            if (activeAdminSurveyId === id) {
+                setActiveAdminSurveyId(updatedSurveys.length > 0 ? updatedSurveys[0].id : null);
+            }
+        }
+    };
+
+    const setPublicActiveSurvey = (id) => {
+        setSurveys(surveys.map(s => ({
+            ...s,
+            status: s.id === id ? 'active' : 'draft'
+        })));
+    };
+
+    const updateSurveyName = (id, newName) => {
+        setSurveys(surveys.map(s => s.id === id ? { ...s, name: newName } : s));
+    };
 
     const addClip = () => {
+        if (!activeAdminSurvey) return;
         const newClip = {
             id: `clip-${Date.now()}`,
-            title: `Animation Clip ${config.clips.length + 1}`,
+            title: `Animation Clip ${activeAdminSurvey.clips.length + 1}`,
             adminTitle: '',
             url: ''
         };
-        setConfig({ ...config, clips: [...config.clips, newClip] });
+        const updatedClips = [...activeAdminSurvey.clips, newClip];
+        setSurveys(surveys.map(s => s.id === activeAdminSurveyId ? { ...s, clips: updatedClips } : s));
     };
 
     const updateClip = (id, field, value) => {
-        const updated = config.clips.map(c =>
+        if (!activeAdminSurvey) return;
+        const updatedClips = activeAdminSurvey.clips.map(c =>
             c.id === id ? { ...c, [field]: value } : c
         );
-        setConfig({ ...config, clips: updated });
+        setSurveys(surveys.map(s => s.id === activeAdminSurveyId ? { ...s, clips: updatedClips } : s));
     };
 
     const removeClip = (id) => {
-        const updated = config.clips.filter(c => c.id !== id);
-        setConfig({ ...config, clips: updated });
+        if (!activeAdminSurvey) return;
+        const updatedClips = activeAdminSurvey.clips.filter(c => c.id !== id);
+        setSurveys(surveys.map(s => s.id === activeAdminSurveyId ? { ...s, clips: updatedClips } : s));
     };
 
     return (
@@ -706,20 +825,91 @@ function AdminDashboard({ config, setConfig, responses, onDownload }) {
 
             <div className="admin-tabs">
                 <button
-                    onClick={() => setActiveTab('config')}
-                    className={`admin-tab ${activeTab === 'config' ? 'admin-tab-active' : ''}`}
+                    onClick={() => setActiveTab('surveys')}
+                    className={`admin-tab ${activeTab === 'surveys' ? 'admin-tab-active' : ''}`}
                 >
-                    <Settings size={18} /> Evaluation Setup
+                    <Settings size={18} /> Manage Surveys
+                </button>
+                <button
+                    onClick={() => setActiveTab('config')}
+                    disabled={!activeAdminSurveyId}
+                    className={`admin-tab ${activeTab === 'config' ? 'admin-tab-active' : ''}`}
+                    style={{ opacity: !activeAdminSurveyId ? 0.5 : 1, cursor: !activeAdminSurveyId ? 'not-allowed' : 'pointer' }}
+                >
+                    <Video size={18} /> Edit Clips
                 </button>
                 <button
                     onClick={() => setActiveTab('results')}
+                    disabled={!activeAdminSurveyId}
                     className={`admin-tab ${activeTab === 'results' ? 'admin-tab-active' : ''}`}
+                    style={{ opacity: !activeAdminSurveyId ? 0.5 : 1, cursor: !activeAdminSurveyId ? 'not-allowed' : 'pointer' }}
                 >
-                    <Users size={18} /> Responses ({responses.length})
+                    <Users size={18} /> Responses ({currentResponses.length})
                 </button>
             </div>
 
-            {activeTab === 'config' && (
+            {!activeAdminSurveyId && activeTab !== 'surveys' && (
+                <div className="empty-state">
+                    <p>Select a survey from the 'Manage Surveys' tab to edit or view responses.</p>
+                </div>
+            )}
+
+            {activeTab === 'surveys' && (
+                <div style={{ animation: 'fadeIn 0.3s' }}>
+                    <div className="section-header-row">
+                        <h2 className="section-title">All Surveys</h2>
+                        <button onClick={createSurvey} className="btn-secondary">
+                            <Plus size={16} /> Create New Survey
+                        </button>
+                    </div>
+
+                    <div className="survey-list">
+                        {surveys.map((survey) => (
+                            <div key={survey.id} className={`survey-item ${activeAdminSurveyId === survey.id ? 'survey-item-active' : ''}`}>
+                                <div className="survey-info">
+                                    <div className="survey-name">
+                                        {activeAdminSurveyId === survey.id ? (
+                                            <input
+                                                type="text"
+                                                value={survey.name}
+                                                onChange={(e) => updateSurveyName(survey.id, e.target.value)}
+                                                style={{ background: 'transparent', border: '1px solid #3f3f46', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '4px', outline: 'none', minWidth: '300px' }}
+                                            />
+                                        ) : (
+                                            survey.name
+                                        )}
+                                    </div>
+                                    <div className="survey-meta">
+                                        <span>Created: {survey.dateCreated}</span>
+                                        <span>Clips: {survey.clips.length}</span>
+                                        <span>Responses: {responsesBySurvey[survey.id]?.length || 0}</span>
+                                        <span className={`survey-status ${survey.status === 'active' ? 'status-active' : 'status-draft'}`}>
+                                            {survey.status}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="survey-actions">
+                                    {survey.status !== 'active' && (
+                                        <button onClick={() => setPublicActiveSurvey(survey.id)} className="btn-secondary" style={{ backgroundColor: 'rgba(34, 197, 94, 0.2)', color: '#4ade80' }}>
+                                            Set Public Active
+                                        </button>
+                                    )}
+                                    {activeAdminSurveyId !== survey.id && (
+                                        <button onClick={() => { setActiveAdminSurveyId(survey.id); setActiveTab('config'); }} className="btn-secondary">
+                                            Edit
+                                        </button>
+                                    )}
+                                    <button onClick={() => deleteSurvey(survey.id)} className="btn-remove" title="Delete Survey">
+                                        <Trash2 size={18} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {activeTab === 'config' && activeAdminSurveyId && (
                 <div style={{ animation: 'fadeIn 0.3s' }}>
                     <div className="admin-note">
                         <p className="admin-note-text">
@@ -735,7 +925,7 @@ function AdminDashboard({ config, setConfig, responses, onDownload }) {
                     </div>
 
                     <div className="clip-list">
-                        {config.clips.map((clip, index) => (
+                        {activeAdminSurvey.clips.map((clip, index) => (
                             <div key={clip.id} className="clip-item">
                                 <div className="clip-num">{index + 1}.</div>
                                 <div className="clip-fields">
@@ -779,7 +969,7 @@ function AdminDashboard({ config, setConfig, responses, onDownload }) {
                             </div>
                         ))}
 
-                        {config.clips.length === 0 && (
+                        {activeAdminSurvey.clips.length === 0 && (
                             <div className="empty-state">
                                 <p>No clips configured. Click "Add Clip" to start building your evaluation test.</p>
                             </div>
@@ -788,16 +978,16 @@ function AdminDashboard({ config, setConfig, responses, onDownload }) {
                 </div>
             )}
 
-            {activeTab === 'results' && (
+            {activeTab === 'results' && activeAdminSurveyId && (
                 <div style={{ animation: 'fadeIn 0.3s' }}>
                     <div className="section-header-row">
-                        <h2 className="section-title">Collected Data</h2>
-                        <button onClick={onDownload} disabled={responses.length === 0} className="btn-export">
+                        <h2 className="section-title">Collected Data for: {activeAdminSurvey.name}</h2>
+                        <button onClick={onDownload} disabled={currentResponses.length === 0} className="btn-export">
                             <Download size={16} /> Export to CSV
                         </button>
                     </div>
 
-                    {responses.length === 0 ? (
+                    {currentResponses.length === 0 ? (
                         <div className="empty-state">
                             <Users size={48} className="empty-state-icon" />
                             <p>No responses yet.</p>
@@ -809,7 +999,7 @@ function AdminDashboard({ config, setConfig, responses, onDownload }) {
                                 <thead className="table-thead">
                                     <tr>
                                         <th className="table-th" style={{ borderRight: '1px solid rgba(39, 39, 42, 0.5)' }}>Date / Artist</th>
-                                        {config.clips.map((c, i) => (
+                                        {activeAdminSurvey.clips.map((c, i) => (
                                             <th key={c.id} colSpan={4} className="table-th table-th-center" style={{ backgroundColor: 'rgba(24,24,27,0.3)' }}>
                                                 Clip {i + 1}: {c.adminTitle ? c.adminTitle : c.title}
                                             </th>
@@ -817,7 +1007,7 @@ function AdminDashboard({ config, setConfig, responses, onDownload }) {
                                     </tr>
                                     <tr>
                                         <th className="table-th-sub" style={{ borderLeft: 'none' }}></th>
-                                        {config.clips.map(c => (
+                                        {activeAdminSurvey.clips.map(c => (
                                             <React.Fragment key={c.id}>
                                                 <th className="table-th-sub">Title Details</th>
                                                 <th className="table-th-sub">Rating</th>
@@ -828,14 +1018,14 @@ function AdminDashboard({ config, setConfig, responses, onDownload }) {
                                     </tr>
                                 </thead>
                                 <tbody className="table-tbody">
-                                    {responses.map((r, index) => (
+                                    {currentResponses.map((r, index) => (
                                         <tr key={index} className="table-tr">
                                             <td className="table-td">
                                                 <div className="td-date">{r.date}</div>
                                                 <div className="td-name">{r.artist.name}</div>
                                                 <div className="td-email">{r.artist.email}</div>
                                             </td>
-                                            {config.clips.map(c => {
+                                            {activeAdminSurvey.clips.map(c => {
                                                 const ans = r.answers[c.id] || {};
                                                 return (
                                                     <React.Fragment key={c.id}>
