@@ -412,48 +412,43 @@ export default function App() {
     const randomIndex = publishedSurveys.length > 0 ? getSessionSurveyIndex(publishedSurveys.length) : 0;
     const activePublicSurvey = externalSurvey || publishedSurveys[randomIndex] || surveys[0];
 
+    // ⚙️  Replace this with your Formspree form ID from formspree.io/forms
+    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/YOUR_FORM_ID';
+
     const handleUserSubmit = async (newResponse) => {
         if (!activePublicSurvey) return;
 
-        // If this is an external JSON survey, submit payload formally to Formspree endpoint securely
-        if (externalSurvey) {
-            try {
-                const formspreeEndpoint = 'https://formspree.io/f/mqkenryb'; // Formspree URL for GA-Survey
-
-                // We add the survey name to the payload so it's clear in the formspree dashboard
-                const submissionPayload = {
-                    ...newResponse,
-                    _subject: `New Survey Response: ${externalSurvey.name}`
-                };
-
-                const res = await fetch(formspreeEndpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(submissionPayload)
-                });
-
-                if (!res.ok) {
-                    throw new Error(`Failed to submit: ${res.statusText}`);
-                }
-
-                // Success! The response is safely delivered to the Formspree inbox without touching LocalStorage.
-                console.log("Successfully submitted response to Formspree.");
-                return;
-            } catch (error) {
-                console.error("Formspree Submission Error:", error);
-                alert("There was an error submitting your response remotely. Please try again or contact the administrator.");
-                throw error; // Throw so UserEvaluationFlow catches it and stops progression
-            }
-        }
-
-        // Otherwise, save to local storage (for admin local tests)
+        // Always save locally first — guarantees CSV export works from admin dashboard
+        const surveyId = activePublicSurvey.id;
         setResponsesBySurvey(prev => ({
             ...prev,
-            [activePublicSurvey.id]: [...(prev[activePublicSurvey.id] || []), newResponse]
+            [surveyId]: [...(prev[surveyId] || []), newResponse]
         }));
+
+        // Also send to Formspree for email backup / off-device access
+        if (FORMSPREE_ENDPOINT.includes('YOUR_FORM_ID')) {
+            console.warn('Formspree not configured. Set FORMSPREE_ENDPOINT in ArtistEvaluationPlatform.jsx');
+            return;
+        }
+
+        try {
+            const submissionPayload = {
+                ...newResponse,
+                _subject: `New Survey Response: ${activePublicSurvey.name}`
+            };
+
+            const res = await fetch(FORMSPREE_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify(submissionPayload)
+            });
+
+            if (!res.ok) console.error(`Formspree submission failed: ${res.statusText}`);
+            else console.log('Response sent to Formspree successfully.');
+        } catch (error) {
+            // Non-fatal — data is already saved locally
+            console.error('Formspree network error:', error);
+        }
     };
 
     const downloadCSV = () => {
