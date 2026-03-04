@@ -76,7 +76,7 @@ const STYLESHEET = `
 .outro-subtitle { font-size: 1.25rem; color: #a1a1aa; margin-bottom: 2rem; }
 
 /* Evaluation Flow Elements */
-.eval-screen { flex: 1; display: flex; flex-direction: column; padding: 1rem; max-width: 64rem; margin: 0 auto; width: 100%; position: relative; animation: fadeIn 0.5s; box-sizing: border-box; }
+.eval-screen { flex: 1; display: flex; flex-direction: column; padding: 1rem; margin: 0 auto; width: 100%; position: relative; animation: fadeIn 0.5s; box-sizing: border-box; }
 @media (min-width: 768px) { .eval-screen { padding: 1.5rem; } }
 .progress-bar-wrap { position: fixed; top: 72px; left: 0; right: 0; height: 4px; background-color: #18181b; z-index: 40; }
 .progress-bar-fill { height: 100%; background-color: #3b82f6; transition: width 0.5s ease-out; }
@@ -124,7 +124,7 @@ const STYLESHEET = `
 .action-bar { display: flex; justify-content: flex-end; padding-top: 1rem; padding-bottom: 2.5rem; }
 
 /* Admin Dashboard */
-.admin-screen { flex: 1; display: flex; flex-direction: column; padding: 1.5rem; max-width: 72rem; margin: 0 auto; width: 100%; box-sizing: border-box; }
+.admin-screen { flex: 1; display: flex; flex-direction: column; padding: 1.5rem; margin: 0 auto; width: 100%; box-sizing: border-box; }
 .admin-header { margin-bottom: 2rem; }
 .admin-title { font-size: 1.875rem; font-weight: 300; color: #ffffff; margin-bottom: 0.5rem; margin-top: 0; }
 .admin-desc { color: #a1a1aa; margin: 0; }
@@ -282,7 +282,7 @@ export default function App() {
 
     const [testConfig, setTestConfig] = useState({
         clips: [
-            { id: 'c1', title: 'Test Animation 01', url: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ' }
+            { id: 'c1', title: 'Test Animation 01', adminTitle: '', url: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ' }
         ]
     });
 
@@ -304,6 +304,8 @@ export default function App() {
     const downloadCSV = () => {
         const headers = ['Date', 'Name', 'Email', 'Company', 'Role'];
         testConfig.clips.forEach((c, i) => {
+            headers.push(`Clip ${i + 1}: Admin Title`);
+            headers.push(`Clip ${i + 1}: Title`);
             headers.push(`Clip ${i + 1}: Rating`);
             headers.push(`Clip ${i + 1}: Issues`);
             headers.push(`Clip ${i + 1}: Other Issues`);
@@ -316,6 +318,8 @@ export default function App() {
 
             testConfig.clips.forEach(c => {
                 const ans = r.answers[c.id] || { rating: '', issues: [], other: '' };
+                row.push(c.adminTitle || '');
+                row.push(c.title || '');
                 row.push(ans.rating || '');
                 row.push(ans.issues?.join('; ') || '');
                 row.push(ans.other || '');
@@ -675,6 +679,7 @@ function AdminDashboard({ config, setConfig, responses, onDownload }) {
         const newClip = {
             id: `clip-${Date.now()}`,
             title: `Animation Clip ${config.clips.length + 1}`,
+            adminTitle: '',
             url: ''
         };
         setConfig({ ...config, clips: [...config.clips, newClip] });
@@ -745,6 +750,16 @@ function AdminDashboard({ config, setConfig, responses, onDownload }) {
                                         />
                                     </div>
                                     <div className="clip-field">
+                                        <label className="clip-label">Admin Title (Export Only / Hidden from Survey)</label>
+                                        <input
+                                            type="text"
+                                            value={clip.adminTitle || ''}
+                                            onChange={(e) => updateClip(clip.id, 'adminTitle', e.target.value)}
+                                            placeholder="e.g., v1_skate_fixed"
+                                            className="clip-input"
+                                        />
+                                    </div>
+                                    <div className="clip-field">
                                         <label className="clip-label">Video URL (YouTube or .mp4)</label>
                                         <div className="clip-url-wrap">
                                             <Video size={16} className="clip-url-icon" />
@@ -795,8 +810,8 @@ function AdminDashboard({ config, setConfig, responses, onDownload }) {
                                     <tr>
                                         <th className="table-th" style={{ borderRight: '1px solid rgba(39, 39, 42, 0.5)' }}>Date / Artist</th>
                                         {config.clips.map((c, i) => (
-                                            <th key={c.id} colSpan={3} className="table-th table-th-center" style={{ backgroundColor: 'rgba(24,24,27,0.3)' }}>
-                                                Clip {i + 1}: {c.title}
+                                            <th key={c.id} colSpan={4} className="table-th table-th-center" style={{ backgroundColor: 'rgba(24,24,27,0.3)' }}>
+                                                Clip {i + 1}: {c.adminTitle ? c.adminTitle : c.title}
                                             </th>
                                         ))}
                                     </tr>
@@ -804,6 +819,7 @@ function AdminDashboard({ config, setConfig, responses, onDownload }) {
                                         <th className="table-th-sub" style={{ borderLeft: 'none' }}></th>
                                         {config.clips.map(c => (
                                             <React.Fragment key={c.id}>
+                                                <th className="table-th-sub">Title Details</th>
                                                 <th className="table-th-sub">Rating</th>
                                                 <th className="table-th-sub">Issues</th>
                                                 <th className="table-th-sub">Other</th>
@@ -823,6 +839,10 @@ function AdminDashboard({ config, setConfig, responses, onDownload }) {
                                                 const ans = r.answers[c.id] || {};
                                                 return (
                                                     <React.Fragment key={c.id}>
+                                                        <td className="table-td">
+                                                            <div className="td-email" title="Admin Title">{c.adminTitle || '-'}</div>
+                                                            <div className="td-truncate w-40" title={c.title} style={{ fontSize: '0.75rem', color: '#71717a' }}>{c.title}</div>
+                                                        </td>
                                                         <td className="table-td">
                                                             <div className="td-truncate w-40" title={ans.rating || '-'}>{ans.rating ? ans.rating.substring(0, 2) + '...' : '-'}</div>
                                                         </td>
