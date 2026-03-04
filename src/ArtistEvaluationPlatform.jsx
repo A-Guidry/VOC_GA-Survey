@@ -311,40 +311,28 @@ export default function App() {
     const [surveys, setSurveys] = useState([]);
     const [activeAdminSurveyId, setActiveAdminSurveyId] = useState(null);
 
-    // 0. Load survey from URL ?id= param, or fall back to public/surveys/default.json
+    // 0. Load specific survey from URL ?id= param (only when explicitly provided)
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
-        const surveyId = urlParams.get('id') || 'default'; // Always try a file; default when no ?id=
+        const surveyId = urlParams.get('id');
+        if (!surveyId) return; // No ?id= — use random rotation from index.json instead
 
         setIsExternalLoading(true);
-        const basePath = import.meta.env.BASE_URL || '/';
-        const fetchUrl = `${basePath.replace(/\/$/, '')}/surveys/${surveyId}.json`;
-
-        fetch(fetchUrl)
+        const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+        fetch(`${base}/surveys/${surveyId}.json`)
             .then(res => {
-                if (!res.ok) {
-                    // If no explicit ?id= and default.json not found, silently fall back to localStorage
-                    if (surveyId === 'default') return null;
-                    throw new Error(`Could not locate survey configuration for "${surveyId}". HTTP ${res.status}`);
-                }
+                if (!res.ok) throw new Error(`Could not locate survey "${surveyId}". HTTP ${res.status}`);
                 return res.json();
             })
             .then(data => {
-                if (!data) return; // silent fallback
-                if (!data.id || !data.clips) {
-                    if (surveyId === 'default') return; // silent fallback
-                    throw new Error(`Survey file "${surveyId}.json" is missing required configuration data.`);
-                }
+                if (!data.id || !data.clips) throw new Error(`Survey "${surveyId}.json" is missing required data.`);
                 setExternalSurvey(data);
             })
             .catch(err => {
-                console.error("External Survey Load Error:", err);
-                // Only show error to user when an explicit ?id= was provided
-                if (urlParams.get('id')) setExternalError(err.message);
+                console.error('External Survey Load Error:', err);
+                setExternalError(err.message);
             })
-            .finally(() => {
-                setIsExternalLoading(false);
-            });
+            .finally(() => setIsExternalLoading(false));
     }, []);
 
     // 1. Load surveys from committed JSON files in public/surveys/
@@ -448,7 +436,8 @@ export default function App() {
                             <MonitorPlay size={16} />
                             <span className="sm-inline">BXD Motion Capture Quality Evaluation</span>
                             <span className="sm-hidden">BXD EVAL</span>
-                            {externalSurvey && <span className="external-survey-badge">URL OVERRIDE</span>}
+
+
                         </div>
                         <div className="header-controls">
                             <button
