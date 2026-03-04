@@ -399,14 +399,18 @@ export default function App() {
         localStorage.setItem('bxd_responses', JSON.stringify(responsesBySurvey));
     }, [surveys, responsesBySurvey, isLoaded]);
 
-    // Round-robin: rotate through published surveys on a daily cadence
+    // Random distribution: each new browser session gets a randomly assigned published survey.
+    // sessionStorage keeps the assignment stable if the page is refreshed mid-evaluation.
     const publishedSurveys = surveys.filter(s => s.status === 'published');
-    const rotationIntervalDays = 1; // configurable in future admin setting
-    const rotationMs = rotationIntervalDays * 24 * 60 * 60 * 1000;
-    const rotationIndex = publishedSurveys.length > 0
-        ? Math.floor(Date.now() / rotationMs) % publishedSurveys.length
-        : 0;
-    const activePublicSurvey = externalSurvey || publishedSurveys[rotationIndex] || surveys[0];
+    const getSessionSurveyIndex = (count) => {
+        const stored = sessionStorage.getItem('bxd_survey_index');
+        if (stored !== null) return parseInt(stored, 10);
+        const newIndex = Math.floor(Math.random() * count);
+        sessionStorage.setItem('bxd_survey_index', String(newIndex));
+        return newIndex;
+    };
+    const randomIndex = publishedSurveys.length > 0 ? getSessionSurveyIndex(publishedSurveys.length) : 0;
+    const activePublicSurvey = externalSurvey || publishedSurveys[randomIndex] || surveys[0];
 
     const handleUserSubmit = async (newResponse) => {
         if (!activePublicSurvey) return;
