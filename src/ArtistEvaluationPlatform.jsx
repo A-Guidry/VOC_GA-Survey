@@ -943,7 +943,7 @@ function AdminDashboard({ surveys, setSurveys, activeAdminSurveyId, setActiveAdm
 
                     <div className="rotation-info" style={{ marginBottom: '1rem' }}>
                         <Info size={14} />
-                        All <strong>Published</strong> surveys rotate daily on the main URL. Draft surveys are hidden from public visitors.
+                        Each visitor is randomly assigned one of the <strong>Published</strong> surveys. Draft surveys are hidden from public visitors.
                     </div>
 
                     <div className="survey-list">
