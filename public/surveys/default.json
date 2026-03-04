@@ -1,0 +1,12 @@
+{
+    "id": "default",
+    "name": "BXD Mocap Quality Evaluation",
+    "clips": [
+        {
+            "id": "c1",
+            "title": "Animation Clip 01",
+            "adminTitle": "v1_run_cycle",
+            "url": "https://www.youtube.com/watch?v=aqz-KE-bpKQ"
+        }
+    ]
+}

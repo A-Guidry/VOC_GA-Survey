@@ -327,36 +327,40 @@ export default function App() {
     const [responsesBySurvey, setResponsesBySurvey] = useState({});
     const [activeAdminSurveyId, setActiveAdminSurveyId] = useState(null);
 
-    // 0. Check for External Survey via URL Query Parameter ?id=
+    // 0. Load survey from URL ?id= param, or fall back to public/surveys/default.json
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
-        const surveyId = urlParams.get('id');
+        const surveyId = urlParams.get('id') || 'default'; // Always try a file; default when no ?id=
 
-        if (surveyId) {
-            setIsExternalLoading(true);
-            // In Vite/React, public assets are served from the base path.
-            // On GitHub Pages, this will be /VOC_GA-Survey/surveys/surveyId.json
-            const basePath = import.meta.env.BASE_URL || '/';
-            const fetchUrl = `${basePath.replace(/\/$/, '')}/surveys/${surveyId}.json`;
+        setIsExternalLoading(true);
+        const basePath = import.meta.env.BASE_URL || '/';
+        const fetchUrl = `${basePath.replace(/\/$/, '')}/surveys/${surveyId}.json`;
 
-            fetch(fetchUrl)
-                .then(res => {
-                    if (!res.ok) throw new Error(`Could not locate survey configuration for "${surveyId}". HTTP ${res.status}`);
-                    return res.json();
-                })
-                .then(data => {
-                    // Validations to ensure it's a valid layout object
-                    if (!data.id || !data.clips) throw new Error(`Survey file "${surveyId}.json" is missing required configuration data.`);
-                    setExternalSurvey(data);
-                })
-                .catch(err => {
-                    console.error("External Survey Load Error:", err);
-                    setExternalError(err.message);
-                })
-                .finally(() => {
-                    setIsExternalLoading(false);
-                });
-        }
+        fetch(fetchUrl)
+            .then(res => {
+                if (!res.ok) {
+                    // If no explicit ?id= and default.json not found, silently fall back to localStorage
+                    if (surveyId === 'default') return null;
+                    throw new Error(`Could not locate survey configuration for "${surveyId}". HTTP ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (!data) return; // silent fallback
+                if (!data.id || !data.clips) {
+                    if (surveyId === 'default') return; // silent fallback
+                    throw new Error(`Survey file "${surveyId}.json" is missing required configuration data.`);
+                }
+                setExternalSurvey(data);
+            })
+            .catch(err => {
+                console.error("External Survey Load Error:", err);
+                // Only show error to user when an explicit ?id= was provided
+                if (urlParams.get('id')) setExternalError(err.message);
+            })
+            .finally(() => {
+                setIsExternalLoading(false);
+            });
     }, []);
 
     // 1. Initial Load from LocalStorage
