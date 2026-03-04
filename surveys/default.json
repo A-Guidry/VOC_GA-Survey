@@ -1,6 +1,7 @@
 {
     "id": "default",
     "name": "BXD Mocap Quality Evaluation",
+    "status": "published",
     "clips": [
         {
             "id": "c1",
