@@ -422,17 +422,37 @@ export default function App() {
         // Send to Formspree
         if (!FORMSPREE_ENDPOINT.includes('YOUR_FORM_ID')) {
             try {
-                const submissionPayload = {
-                    ...newResponse,
-                    _subject: `New Survey Response: ${activePublicSurvey.name}`
+                // Build a flat, ordered, human-readable payload for Formspree
+                const payload = {
+                    _subject: `New Survey Response: ${activePublicSurvey.name}`,
+                    '01 - Survey': activePublicSurvey.name,
+                    '02 - Date': newResponse.date,
+                    '03 - Name': newResponse.artist.name,
+                    '04 - Email': newResponse.artist.email,
+                    '05 - Company': newResponse.artist.company,
+                    '06 - Role': newResponse.artist.role,
                 };
+
+                // Add each clip's metadata + answers in order
+                activePublicSurvey.clips.forEach((clip, i) => {
+                    const ans = newResponse.answers[clip.id] || {};
+                    const n = String(i + 1).padStart(2, '0');
+                    const prefix = `Clip ${n}`;
+                    payload[`${prefix} - Admin Title`] = clip.adminTitle || '';
+                    payload[`${prefix} - Clip Title`] = clip.title || '';
+                    payload[`${prefix} - YouTube URL`] = clip.url || '';
+                    payload[`${prefix} - Rating`] = ans.rating || '';
+                    payload[`${prefix} - Issues`] = (ans.issues || []).join(', ');
+                    payload[`${prefix} - Other Issues`] = ans.other || '';
+                });
+
                 const res = await fetch(FORMSPREE_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                    body: JSON.stringify(submissionPayload)
+                    body: JSON.stringify(payload)
                 });
+
                 if (res.ok) {
-                    // Increment the global submission counter for this survey
                     fetch(`https://api.countapi.xyz/hit/bxd-voc-survey/${surveyId}`).catch(() => { });
                     console.log('Response sent to Formspree successfully.');
                 } else {
