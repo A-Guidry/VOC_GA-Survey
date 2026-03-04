@@ -413,7 +413,7 @@ export default function App() {
     const activePublicSurvey = externalSurvey || publishedSurveys[randomIndex] || surveys[0];
 
     // ⚙️  Replace this with your Formspree form ID from formspree.io/forms
-    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/YOUR_FORM_ID';
+    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xykdrqln';
 
     const handleUserSubmit = async (newResponse) => {
         if (!activePublicSurvey) return;
