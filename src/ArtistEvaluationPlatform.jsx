@@ -417,81 +417,35 @@ export default function App() {
 
     const handleUserSubmit = async (newResponse) => {
         if (!activePublicSurvey) return;
-
-        // Always save locally first — guarantees CSV export works from admin dashboard
         const surveyId = activePublicSurvey.id;
-        setResponsesBySurvey(prev => ({
-            ...prev,
-            [surveyId]: [...(prev[surveyId] || []), newResponse]
-        }));
 
-        // Also send to Formspree for email backup / off-device access
-        if (FORMSPREE_ENDPOINT.includes('YOUR_FORM_ID')) {
-            console.warn('Formspree not configured. Set FORMSPREE_ENDPOINT in ArtistEvaluationPlatform.jsx');
-            return;
-        }
-
-        try {
-            const submissionPayload = {
-                ...newResponse,
-                _subject: `New Survey Response: ${activePublicSurvey.name}`
-            };
-
-            const res = await fetch(FORMSPREE_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                body: JSON.stringify(submissionPayload)
-            });
-
-            if (!res.ok) console.error(`Formspree submission failed: ${res.statusText}`);
-            else console.log('Response sent to Formspree successfully.');
-        } catch (error) {
-            // Non-fatal — data is already saved locally
-            console.error('Formspree network error:', error);
+        // Send to Formspree
+        if (!FORMSPREE_ENDPOINT.includes('YOUR_FORM_ID')) {
+            try {
+                const submissionPayload = {
+                    ...newResponse,
+                    _subject: `New Survey Response: ${activePublicSurvey.name}`
+                };
+                const res = await fetch(FORMSPREE_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify(submissionPayload)
+                });
+                if (res.ok) {
+                    // Increment the global submission counter for this survey
+                    fetch(`https://api.countapi.xyz/hit/bxd-voc-survey/${surveyId}`).catch(() => { });
+                    console.log('Response sent to Formspree successfully.');
+                } else {
+                    console.error(`Formspree submission failed: ${res.statusText}`);
+                }
+            } catch (error) {
+                console.error('Formspree network error:', error);
+            }
+        } else {
+            console.warn('Formspree not configured.');
         }
     };
 
-    const downloadCSV = () => {
-        const activeAdminSurvey = surveys.find(s => s.id === activeAdminSurveyId);
-        if (!activeAdminSurvey) return;
-
-        const currentResponses = responsesBySurvey[activeAdminSurveyId] || [];
-
-        const headers = ['Date', 'Name', 'Email', 'Company', 'Role'];
-        activeAdminSurvey.clips.forEach((c, i) => {
-            headers.push(`Clip ${i + 1}: Admin Title`);
-            headers.push(`Clip ${i + 1}: Title`);
-            headers.push(`Clip ${i + 1}: Rating`);
-            headers.push(`Clip ${i + 1}: Issues`);
-            headers.push(`Clip ${i + 1}: Other Issues`);
-        });
-
-        let csvContent = headers.map(escapeCSV).join(',') + '\n';
-
-        currentResponses.forEach(r => {
-            const row = [r.date, r.artist.name, r.artist.email, r.artist.company, r.artist.role];
-
-            activeAdminSurvey.clips.forEach(c => {
-                const ans = r.answers[c.id] || { rating: '', issues: [], other: '' };
-                row.push(c.adminTitle || '');
-                row.push(c.title || '');
-                row.push(ans.rating || '');
-                row.push(ans.issues?.join('; ') || '');
-                row.push(ans.other || '');
-            });
-            csvContent += row.map(escapeCSV).join(',') + '\n';
-        });
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `BXD_${activeAdminSurvey.name.replace(/\s+/g, '_')}_Responses.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
 
     return (
         <div className="app-wrapper">
@@ -547,10 +501,8 @@ export default function App() {
                             <AdminDashboard
                                 surveys={surveys}
                                 setSurveys={setSurveys}
-                                responsesBySurvey={responsesBySurvey}
                                 activeAdminSurveyId={activeAdminSurveyId}
                                 setActiveAdminSurveyId={setActiveAdminSurveyId}
-                                onDownload={downloadCSV}
                             />
                         ) : null}
                     </div>
@@ -864,11 +816,25 @@ function UserEvaluationFlow({ survey, onSubmit }) {
 // ==========================================
 // ADMIN DASHBOARD
 // ==========================================
-function AdminDashboard({ surveys, setSurveys, responsesBySurvey, activeAdminSurveyId, setActiveAdminSurveyId, onDownload }) {
+function AdminDashboard({ surveys, setSurveys, activeAdminSurveyId, setActiveAdminSurveyId }) {
     const [activeTab, setActiveTab] = useState('surveys');
+    const [surveyCounts, setSurveyCounts] = useState({});
 
     const activeAdminSurvey = surveys.find(s => s.id === activeAdminSurveyId);
-    const currentResponses = responsesBySurvey[activeAdminSurveyId] || [];
+
+    // Fetch submission counts from CountAPI for all surveys
+    useEffect(() => {
+        surveys.forEach(survey => {
+            fetch(`https://api.countapi.xyz/get/bxd-voc-survey/${survey.id}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.value !== undefined) {
+                        setSurveyCounts(prev => ({ ...prev, [survey.id]: data.value }));
+                    }
+                })
+                .catch(() => { }); // Silently fail — not critical
+        });
+    }, [surveys.length]);
 
     const createSurvey = () => {
         const newSurvey = {
@@ -974,14 +940,6 @@ function AdminDashboard({ surveys, setSurveys, responsesBySurvey, activeAdminSur
                 >
                     <Video size={18} /> Edit Clips
                 </button>
-                <button
-                    onClick={() => setActiveTab('results')}
-                    disabled={!activeAdminSurveyId}
-                    className={`admin-tab ${activeTab === 'results' ? 'admin-tab-active' : ''}`}
-                    style={{ opacity: !activeAdminSurveyId ? 0.5 : 1, cursor: !activeAdminSurveyId ? 'not-allowed' : 'pointer' }}
-                >
-                    <Users size={18} /> Responses ({currentResponses.length})
-                </button>
             </div>
 
             {!activeAdminSurveyId && activeTab !== 'surveys' && (
@@ -1023,7 +981,7 @@ function AdminDashboard({ surveys, setSurveys, responsesBySurvey, activeAdminSur
                                     <div className="survey-meta">
                                         <span>Created: {survey.dateCreated}</span>
                                         <span>Clips: {survey.clips.length}</span>
-                                        <span>Responses: {responsesBySurvey[survey.id]?.length || 0}</span>
+                                        <span>Submissions: {surveyCounts[survey.id] ?? '—'}</span>
                                         <span className={`survey-status ${survey.status === 'published' ? 'status-published' : 'status-draft'}`}>
                                             {survey.status === 'published' ? 'Published' : 'Draft'}
                                         </span>
@@ -1139,83 +1097,6 @@ function AdminDashboard({ surveys, setSurveys, responsesBySurvey, activeAdminSur
                 </div>
             )}
 
-            {activeTab === 'results' && activeAdminSurveyId && (
-                <div style={{ animation: 'fadeIn 0.3s' }}>
-                    <div className="section-header-row">
-                        <h2 className="section-title">Collected Data for: {activeAdminSurvey.name}</h2>
-                        <button onClick={onDownload} disabled={currentResponses.length === 0} className="btn-export">
-                            <Download size={16} /> Export to CSV
-                        </button>
-                    </div>
-
-                    {currentResponses.length === 0 ? (
-                        <div className="empty-state">
-                            <Users size={48} className="empty-state-icon" />
-                            <p>No responses yet.</p>
-                            <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>Switch to 'Preview Test' mode to submit a test response.</p>
-                        </div>
-                    ) : (
-                        <div className="table-container">
-                            <table className="data-table">
-                                <thead className="table-thead">
-                                    <tr>
-                                        <th className="table-th" style={{ borderRight: '1px solid rgba(39, 39, 42, 0.5)' }}>Date / Artist</th>
-                                        {activeAdminSurvey.clips.map((c, i) => (
-                                            <th key={c.id} colSpan={4} className="table-th table-th-center" style={{ backgroundColor: 'rgba(24,24,27,0.3)' }}>
-                                                Clip {i + 1}: {c.adminTitle ? c.adminTitle : c.title}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                    <tr>
-                                        <th className="table-th-sub" style={{ borderLeft: 'none' }}></th>
-                                        {activeAdminSurvey.clips.map(c => (
-                                            <React.Fragment key={c.id}>
-                                                <th className="table-th-sub">Title Details</th>
-                                                <th className="table-th-sub">Rating</th>
-                                                <th className="table-th-sub">Issues</th>
-                                                <th className="table-th-sub">Other</th>
-                                            </React.Fragment>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody className="table-tbody">
-                                    {currentResponses.map((r, index) => (
-                                        <tr key={index} className="table-tr">
-                                            <td className="table-td">
-                                                <div className="td-date">{r.date}</div>
-                                                <div className="td-name">{r.artist.name}</div>
-                                                <div className="td-email">{r.artist.email}</div>
-                                            </td>
-                                            {activeAdminSurvey.clips.map(c => {
-                                                const ans = r.answers[c.id] || {};
-                                                return (
-                                                    <React.Fragment key={c.id}>
-                                                        <td className="table-td">
-                                                            <div className="td-email" title="Admin Title">{c.adminTitle || '-'}</div>
-                                                            <div className="td-truncate w-40" title={c.title} style={{ fontSize: '0.75rem', color: '#71717a' }}>{c.title}</div>
-                                                        </td>
-                                                        <td className="table-td">
-                                                            <div className="td-truncate w-40" title={ans.rating || '-'}>{ans.rating ? ans.rating.substring(0, 2) + '...' : '-'}</div>
-                                                        </td>
-                                                        <td className="table-td">
-                                                            <div className="td-truncate w-48 issues-pill" title={ans.issues?.join(', ')}>
-                                                                {ans.issues?.length > 0 ? ans.issues.join(', ') : '-'}
-                                                            </div>
-                                                        </td>
-                                                        <td className="table-td">
-                                                            <div className="td-truncate w-40" title={ans.other || '-'}>{ans.other || '-'}</div>
-                                                        </td>
-                                                    </React.Fragment>
-                                                );
-                                            })}
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </div>
-            )}
         </div>
     );
 }
