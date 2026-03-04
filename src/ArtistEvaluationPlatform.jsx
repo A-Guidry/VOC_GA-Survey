@@ -11,7 +11,8 @@ import {
     Video,
     MonitorPlay,
     ChevronRight,
-    Lock
+    Lock,
+    Info
 } from 'lucide-react';
 
 // --- Stylesheet ---
@@ -147,9 +148,18 @@ const STYLESHEET = `
 .survey-name { font-weight: 500; color: #ffffff; font-size: 1.125rem; }
 .survey-meta { color: #71717a; font-size: 0.875rem; display: flex; gap: 1rem; }
 .survey-status { padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-.status-active { background-color: rgba(34, 197, 94, 0.2); color: #4ade80; }
+.status-published { background-color: rgba(34, 197, 94, 0.2); color: #4ade80; }
 .status-draft { background-color: rgba(161, 161, 170, 0.2); color: #a1a1aa; }
 .survey-actions { display: flex; gap: 0.75rem; }
+.publish-toggle-bar { display: flex; align-items: center; gap: 1rem; padding: 0.875rem 1.25rem; background: rgba(24,24,27,0.5); border: 1px solid #27272a; border-radius: 0.75rem; margin-bottom: 1.25rem; }
+.publish-toggle-label { font-size: 0.875rem; color: #a1a1aa; }
+.toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; inset: 0; background-color: #3f3f46; border-radius: 24px; transition: 0.3s; }
+.toggle-slider:before { position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; border-radius: 50%; transition: 0.3s; }
+.toggle-switch input:checked + .toggle-slider { background-color: #22c55e; }
+.toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+.rotation-info { background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 0.5rem; padding: 0.625rem 1rem; font-size: 0.8rem; color: #93c5fd; display: flex; align-items: center; gap: 0.5rem; }
 
 .clip-list { display: flex; flex-direction: column; gap: 1rem; }
 .clip-item { background-color: rgba(24, 24, 27, 0.5); border: 1px solid #27272a; padding: 1.25rem; border-radius: 0.75rem; display: flex; gap: 1rem; transition: border-color 0.2s; }
@@ -302,7 +312,7 @@ export default function App() {
         id: 'survey-demo',
         name: 'Demo Evaluation',
         dateCreated: new Date().toISOString().split('T')[0],
-        status: 'active',
+        status: 'published',
         clips: [
             { id: 'c1', title: 'Test Animation 01', adminTitle: '', url: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ' }
         ]
@@ -389,7 +399,14 @@ export default function App() {
         localStorage.setItem('bxd_responses', JSON.stringify(responsesBySurvey));
     }, [surveys, responsesBySurvey, isLoaded]);
 
-    const activePublicSurvey = externalSurvey || (surveys.find(s => s.status === 'active') || surveys[0]);
+    // Round-robin: rotate through published surveys on a daily cadence
+    const publishedSurveys = surveys.filter(s => s.status === 'published');
+    const rotationIntervalDays = 1; // configurable in future admin setting
+    const rotationMs = rotationIntervalDays * 24 * 60 * 60 * 1000;
+    const rotationIndex = publishedSurveys.length > 0
+        ? Math.floor(Date.now() / rotationMs) % publishedSurveys.length
+        : 0;
+    const activePublicSurvey = externalSurvey || publishedSurveys[rotationIndex] || surveys[0];
 
     const handleUserSubmit = async (newResponse) => {
         if (!activePublicSurvey) return;
@@ -877,11 +894,12 @@ function AdminDashboard({ surveys, setSurveys, responsesBySurvey, activeAdminSur
         }
     };
 
-    const setPublicActiveSurvey = (id) => {
-        setSurveys(surveys.map(s => ({
-            ...s,
-            status: s.id === id ? 'active' : 'draft'
-        })));
+    const togglePublished = (id) => {
+        setSurveys(surveys.map(s =>
+            s.id === id
+                ? { ...s, status: s.status === 'published' ? 'draft' : 'published' }
+                : s
+        ));
     };
 
     const updateSurveyName = (id, newName) => {
@@ -982,6 +1000,11 @@ function AdminDashboard({ surveys, setSurveys, responsesBySurvey, activeAdminSur
                         </button>
                     </div>
 
+                    <div className="rotation-info" style={{ marginBottom: '1rem' }}>
+                        <Info size={14} />
+                        All <strong>Published</strong> surveys rotate daily on the main URL. Draft surveys are hidden from public visitors.
+                    </div>
+
                     <div className="survey-list">
                         {surveys.map((survey) => (
                             <div key={survey.id} className={`survey-item ${activeAdminSurveyId === survey.id ? 'survey-item-active' : ''}`}>
@@ -1002,17 +1025,21 @@ function AdminDashboard({ surveys, setSurveys, responsesBySurvey, activeAdminSur
                                         <span>Created: {survey.dateCreated}</span>
                                         <span>Clips: {survey.clips.length}</span>
                                         <span>Responses: {responsesBySurvey[survey.id]?.length || 0}</span>
-                                        <span className={`survey-status ${survey.status === 'active' ? 'status-active' : 'status-draft'}`}>
-                                            {survey.status}
+                                        <span className={`survey-status ${survey.status === 'published' ? 'status-published' : 'status-draft'}`}>
+                                            {survey.status === 'published' ? 'Published' : 'Draft'}
                                         </span>
                                     </div>
                                 </div>
                                 <div className="survey-actions">
-                                    {survey.status !== 'active' && (
-                                        <button onClick={() => setPublicActiveSurvey(survey.id)} className="btn-secondary" style={{ backgroundColor: 'rgba(34, 197, 94, 0.2)', color: '#4ade80' }}>
-                                            Set Public Active
-                                        </button>
-                                    )}
+                                    <button
+                                        onClick={() => togglePublished(survey.id)}
+                                        className="btn-secondary"
+                                        style={survey.status === 'published'
+                                            ? { backgroundColor: 'rgba(161,161,170,0.15)', color: '#a1a1aa' }
+                                            : { backgroundColor: 'rgba(34, 197, 94, 0.2)', color: '#4ade80' }}
+                                    >
+                                        {survey.status === 'published' ? 'Unpublish' : 'Publish'}
+                                    </button>
                                     {activeAdminSurveyId !== survey.id && (
                                         <button onClick={() => { setActiveAdminSurveyId(survey.id); setActiveTab('config'); }} className="btn-secondary">
                                             Edit
@@ -1030,6 +1057,23 @@ function AdminDashboard({ surveys, setSurveys, responsesBySurvey, activeAdminSur
 
             {activeTab === 'config' && activeAdminSurveyId && (
                 <div style={{ animation: 'fadeIn 0.3s' }}>
+                    {/* Publish toggle bar */}
+                    <div className="publish-toggle-bar">
+                        <label className="toggle-switch">
+                            <input
+                                type="checkbox"
+                                checked={activeAdminSurvey.status === 'published'}
+                                onChange={() => togglePublished(activeAdminSurveyId)}
+                            />
+                            <span className="toggle-slider"></span>
+                        </label>
+                        <span className="publish-toggle-label">
+                            {activeAdminSurvey.status === 'published'
+                                ? <><span style={{ color: '#4ade80', fontWeight: 600 }}>Published</span> — included in the daily rotation</>
+                                : <><span style={{ color: '#a1a1aa', fontWeight: 600 }}>Draft</span> — hidden from public visitors</>}
+                        </span>
+                    </div>
+
                     <div className="section-header-row">
                         <h2 className="section-title" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>Clips to Evaluate: {activeAdminSurvey.name}</h2>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
