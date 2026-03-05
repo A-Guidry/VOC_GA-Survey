@@ -1,0 +1,20 @@
+{
+    "id": "survey-1772666912212",
+    "name": "New Survey 2",
+    "dateCreated": "2026-03-04",
+    "status": "draft",
+    "clips": [
+        {
+            "id": "clip-1772666920496",
+            "title": "Military Pushups",
+            "adminTitle": "pushups - Xsens",
+            "url": "https://youtu.be/zUtNaEVJNm4"
+        },
+        {
+            "id": "clip-1772666959293",
+            "title": "Walking to the left",
+            "adminTitle": "left waling - Captury",
+            "url": "https://youtu.be/iRdb2nx7HY0"
+        }
+    ]
+}
