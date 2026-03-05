@@ -276,7 +276,7 @@ const ISSUE_OPTIONS = [
     "Jitter"
 ];
 
-const ADMIN_PASSCODE = "bxd2026"; // Hardcoded for MVP
+const ADMIN_PASSCODE = import.meta.env.VITE_ADMIN_PASSCODE || 'admin123';
 
 // --- Main Application Component ---
 
@@ -370,15 +370,15 @@ export default function App() {
     const randomIndex = publishedSurveys.length > 0 ? getSessionSurveyIndex(publishedSurveys.length) : 0;
     const activePublicSurvey = externalSurvey || publishedSurveys[randomIndex] || surveys[0];
 
-    // ⚙️  Replace this with your Formspree form ID from formspree.io/forms
-    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xykdrqln';
+    const FORMSPREE_ENDPOINT = import.meta.env.VITE_FORMSPREE_ENDPOINT || '';
+    const COUNTAPI_NS = import.meta.env.VITE_COUNTAPI_NAMESPACE || 'voc-survey';
 
     const handleUserSubmit = async (newResponse) => {
         if (!activePublicSurvey) return;
         const surveyId = activePublicSurvey.id;
 
         // Send to Formspree
-        if (!FORMSPREE_ENDPOINT.includes('YOUR_FORM_ID')) {
+        if (FORMSPREE_ENDPOINT) {
             try {
                 // Build a flat, ordered, human-readable payload for Formspree
                 const payload = {
@@ -411,7 +411,7 @@ export default function App() {
                 });
 
                 if (res.ok) {
-                    fetch(`https://api.countapi.xyz/hit/bxd-voc-survey/${surveyId}`).catch(() => { });
+                    fetch(`https://api.countapi.xyz/hit/${COUNTAPI_NS}/${surveyId}`).catch(() => { });
                     console.log('Response sent to Formspree successfully.');
                 } else {
                     console.error(`Formspree submission failed: ${res.statusText}`);

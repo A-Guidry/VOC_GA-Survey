@@ -1,19 +1,13 @@
 {
     "id": "default",
-    "name": "Evaluation 1",
+    "name": "Mocap Quality Evaluation",
     "status": "published",
     "clips": [
         {
             "id": "c1",
-            "title": "Pushups",
-            "adminTitle": "pushups- mocopi",
-            "url": "https://youtu.be/zUtNaEVJNm4"
-        },
-        {
-            "id": "clip-1772664675667",
-            "title": "Walking in a circle",
-            "adminTitle": "walking in circle- Lightstorm",
-            "url": "https://youtu.be/iRdb2nx7HY0"
+            "title": "Animation Clip 01",
+            "adminTitle": "",
+            "url": ""
         }
     ]
 }
