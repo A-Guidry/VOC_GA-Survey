@@ -126,7 +126,8 @@ const STYLESHEET = `
 
 /* Admin Dashboard */
 .admin-screen { flex: 1; display: flex; flex-direction: column; padding: 1.5rem; margin: 0 auto; width: 100%; box-sizing: border-box; }
-.admin-header { margin-bottom: 2rem; }
+.admin-header { margin-bottom: 2rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.admin-header-text { flex: 1; }
 .admin-title { font-size: 1.875rem; font-weight: 300; color: #ffffff; margin-bottom: 0.5rem; margin-top: 0; }
 .admin-desc { color: #a1a1aa; margin: 0; }
 .admin-tabs { display: flex; border-bottom: 1px solid #27272a; margin-bottom: 2rem; }
@@ -902,11 +903,28 @@ function AdminDashboard({ surveys, setSurveys, activeAdminSurveyId, setActiveAdm
         setTimeout(() => dl('index.json', { surveys: allIds }), 500);
     };
 
+    const clearAdminSession = () => {
+        sessionStorage.removeItem('bxd_survey_index');
+        localStorage.removeItem('bxd_surveys');
+        localStorage.removeItem('bxd_responses');
+        window.location.reload();
+    };
+
     return (
         <div className="admin-screen">
             <div className="admin-header">
-                <h1 className="admin-title">Platform Management</h1>
-                <p className="admin-desc">Configure evaluation clips and export BXD mocap data.</p>
+                <div className="admin-header-text">
+                    <h1 className="admin-title">Platform Management</h1>
+                    <p className="admin-desc">Configure evaluation clips and export BXD mocap data.</p>
+                </div>
+                <button
+                    onClick={clearAdminSession}
+                    className="btn-secondary"
+                    title="Clears session cache so you can see a fresh random survey assignment in Preview"
+                    style={{ marginTop: '0.25rem', whiteSpace: 'nowrap', flexShrink: 0 }}
+                >
+                    🔄 Reset Preview
+                </button>
             </div>
 
             <div className="admin-tabs">
