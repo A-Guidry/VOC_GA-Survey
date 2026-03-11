@@ -81,11 +81,13 @@ const STYLESHEET = `
 @media (min-width: 768px) { .eval-screen { padding: 1.5rem; } }
 .progress-bar-wrap { position: fixed; top: 72px; left: 0; right: 0; height: 4px; background-color: #18181b; z-index: 40; }
 .progress-bar-fill { height: 100%; background-color: #3b82f6; transition: width 0.5s ease-out; }
-.clip-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; margin-top: 1rem; }
-.clip-counter { color: #3b82f6; font-weight: 500; letter-spacing: 0.05em; font-size: 0.875rem; text-transform: uppercase; }
-.clip-title { color: #a1a1aa; font-weight: 500; }
+.clip-header { display: flex; flex-direction: column; margin-bottom: 2.5rem; gap: 0.25rem; }
+.clip-header-top { display: flex; align-items: flex-start; justify-content: space-between; width: 100%; gap: 1rem; }
+.clip-counter { color: #3b82f6; font-weight: 500; letter-spacing: 0.05em; font-size: 0.875rem; text-transform: uppercase; white-space: nowrap; padding-top: 0.35rem; }
+.clip-title { font-size: 1.5rem; font-weight: 300; color: #ffffff; margin: 0; line-height: 1.4; }
+.clip-description { color: #71717a; font-size: 0.875rem; line-height: 1.5; white-space: pre-wrap; margin-top: 0.5rem; }
 
-.video-wrap { width: 100%; aspect-ratio: 16 / 9; background-color: #000000; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid #27272a; margin-bottom: 2.5rem; }
+.video-wrap { width: 100%; aspect-ratio: 16 / 9; background-color: #000000; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid #27272a; margin-top: 0.5rem; margin-bottom: 1.5rem; }
 .video-element { width: 100%; height: 100%; border: none; object-fit: contain; }
 
 .questions-wrap { display: flex; flex-direction: column; gap: 2.5rem; }
@@ -686,15 +688,6 @@ function UserEvaluationFlow({ survey, onSubmit }) {
                 <div className="progress-bar-fill" style={{ width: `${progressPercent}%` }} />
             </div>
 
-            <div className="clip-header">
-                <div className="clip-counter">
-                    CLIP {step + 1} OF {survey.clips.length}
-                </div>
-                <div className="clip-title">
-                    {currentClip.title}
-                </div>
-            </div>
-
             <div className="video-wrap">
                 {useIframe ? (
                     <iframe
@@ -715,6 +708,22 @@ function UserEvaluationFlow({ survey, onSubmit }) {
                         className="video-element"
                         title={currentClip.title || "Evaluation Video"}
                     />
+                )}
+            </div>
+
+            <div className="clip-header">
+                <div className="clip-header-top">
+                    <div className="clip-title">
+                        {currentClip.title}
+                    </div>
+                    <div className="clip-counter">
+                        CLIP {step + 1} OF {survey.clips.length}
+                    </div>
+                </div>
+                {currentClip.description && (
+                    <div className="clip-description">
+                        {currentClip.description}
+                    </div>
                 )}
             </div>
 
@@ -856,7 +865,8 @@ function AdminDashboard({ surveys, setSurveys, activeAdminSurveyId, setActiveAdm
             id: `clip-${Date.now()}`,
             title: `Animation Clip ${activeAdminSurvey.clips.length + 1}`,
             adminTitle: '',
-            url: ''
+            url: '',
+            description: ''
         };
         const updatedClips = [...activeAdminSurvey.clips, newClip];
         setSurveys(surveys.map(s => s.id === activeAdminSurveyId ? { ...s, clips: updatedClips } : s));
@@ -1065,6 +1075,17 @@ function AdminDashboard({ surveys, setSurveys, activeAdminSurveyId, setActiveAdm
                                             onChange={(e) => updateClip(clip.id, 'adminTitle', e.target.value)}
                                             placeholder="e.g., v1_skate_fixed"
                                             className="clip-input"
+                                        />
+                                    </div>
+                                    <div className="clip-field">
+                                        <label className="clip-label">Description (Optional)</label>
+                                        <textarea
+                                            value={clip.description || ''}
+                                            onChange={(e) => updateClip(clip.id, 'description', e.target.value)}
+                                            placeholder="Enter context, instructions, or a description for this clip..."
+                                            className="clip-input"
+                                            rows="3"
+                                            style={{ resize: 'vertical' }}
                                         />
                                     </div>
                                     <div className="clip-field">
