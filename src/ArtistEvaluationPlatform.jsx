@@ -700,8 +700,8 @@ function UserEvaluationFlow({ survey, onSubmit }) {
     const currentClip = survey.clips[step];
     const clipAnswer = answers[currentClip.id] || { rating: '', issues: [], other: '' };
     const embedUrl = getEmbedUrl(currentClip.url);
-    // Use iframe for YouTube embeds and Google Drive preview
-    const useIframe = embedUrl.includes('/embed/') || embedUrl.includes('/preview');
+    // Use iframe for YouTube embeds, Vimeo player, and Google Drive preview
+    const useIframe = embedUrl.includes('/embed/') || embedUrl.includes('/preview') || embedUrl.includes('player.vimeo.com');
     const progressPercent = ((step) / survey.clips.length) * 100;
 
     return (
