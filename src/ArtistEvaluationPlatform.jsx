@@ -238,7 +238,7 @@ const getEmbedUrl = (url) => {
             return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&autoplay=1&mute=1&loop=1&playlist=${videoId}&modestbranding=1&showinfo=0&controls=1&vq=hd1080`;
         }
 
-        // Handle Google Drive URL formats
+        // Handle Google Drive URL formats - return direct download URL for native video playback
         if (url.includes('drive.google.com')) {
             let driveId = null;
             if (url.includes('/file/d/')) {
@@ -249,7 +249,8 @@ const getEmbedUrl = (url) => {
             }
 
             if (driveId) {
-                return `https://drive.google.com/file/d/${driveId}/preview`;
+                // Return direct download URL for HTML5 video tag (better scrubbing)
+                return `https://drive.google.com/uc?export=download&id=${driveId}`;
             }
         }
 
@@ -682,7 +683,8 @@ function UserEvaluationFlow({ survey, onSubmit }) {
     const currentClip = survey.clips[step];
     const clipAnswer = answers[currentClip.id] || { rating: '', issues: [], other: '' };
     const embedUrl = getEmbedUrl(currentClip.url);
-    const useIframe = embedUrl.includes('/embed/') || embedUrl.includes('/preview');
+    // Use iframe for YouTube embeds, native video tag for Google Drive and direct video files
+    const useIframe = embedUrl.includes('/embed/');
     const progressPercent = ((step) / survey.clips.length) * 100;
 
     return (
