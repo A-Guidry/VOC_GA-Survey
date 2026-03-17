@@ -6,10 +6,10 @@
     "clips": [
         {
             "id": "c1",
-            "title": "Sample Animation Clip",
-            "adminTitle": "Sample Clip",
-            "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-            "description": "This is a sample clip. Replace with your actual motion capture video."
+            "title": "Cartwheels",
+            "adminTitle": "CatsEye Jason S1 Cartwheel",
+            "url": "https://youtu.be/sM1zLWufL4k",
+            "description": "Actor performs multiple cartwheels"
         },
         {
             "id": "clip-1773718020826",
