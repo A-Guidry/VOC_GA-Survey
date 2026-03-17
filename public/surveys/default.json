@@ -6,10 +6,10 @@
     "clips": [
         {
             "id": "c1",
-            "title": "Sample Animation Clip",
-            "adminTitle": "Sample Clip",
-            "url": "https://www.youtube.com/watch?v=sM1zLWufL4k",
-            "description": "This is a sample clip. Replace with your actual motion capture video."
+            "title": "Military Pushups",
+            "adminTitle": "Pushups - Xsens",
+            "url": "https://youtu.be/zUtNaEVJNm4",
+            "description": "Actor performing military-style pushups"
         },
         {
             "id": "clip-1773718020826",
