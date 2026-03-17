@@ -238,7 +238,24 @@ const getEmbedUrl = (url) => {
             return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&autoplay=1&mute=1&loop=1&playlist=${videoId}&modestbranding=1&showinfo=0&controls=1&vq=hd1080`;
         }
 
-        // Handle Google Drive URL formats - return direct download URL for native video playback
+        // Handle Vimeo URL formats
+        if (url.includes('vimeo.com')) {
+            let vimeoId = null;
+            if (url.includes('vimeo.com/')) {
+                // Extract video ID from various Vimeo URL formats
+                const parts = url.split('vimeo.com/')[1];
+                if (parts) {
+                    vimeoId = parts.split('/')[0].split('?')[0];
+                }
+            }
+
+            if (vimeoId) {
+                // Return Vimeo embed URL with autoplay, loop, muted, and quality settings
+                return `https://player.vimeo.com/video/${vimeoId}?autoplay=1&loop=1&muted=1&quality=auto&controls=1`;
+            }
+        }
+
+        // Handle Google Drive URL formats
         if (url.includes('drive.google.com')) {
             let driveId = null;
             if (url.includes('/file/d/')) {
