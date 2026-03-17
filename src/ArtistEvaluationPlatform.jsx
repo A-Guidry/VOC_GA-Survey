@@ -249,8 +249,8 @@ const getEmbedUrl = (url) => {
             }
 
             if (driveId) {
-                // Return streaming URL for HTML5 video tag (better scrubbing than iframe)
-                return `https://drive.google.com/uc?export=view&id=${driveId}`;
+                // Return preview URL for iframe embed (native video tag doesn't work with Google Drive auth)
+                return `https://drive.google.com/file/d/${driveId}/preview`;
             }
         }
 
@@ -683,8 +683,8 @@ function UserEvaluationFlow({ survey, onSubmit }) {
     const currentClip = survey.clips[step];
     const clipAnswer = answers[currentClip.id] || { rating: '', issues: [], other: '' };
     const embedUrl = getEmbedUrl(currentClip.url);
-    // Use iframe for YouTube embeds, native video tag for Google Drive and direct video files
-    const useIframe = embedUrl.includes('/embed/');
+    // Use iframe for YouTube embeds and Google Drive preview
+    const useIframe = embedUrl.includes('/embed/') || embedUrl.includes('/preview');
     const progressPercent = ((step) / survey.clips.length) * 100;
 
     return (
