@@ -235,7 +235,7 @@ const getEmbedUrl = (url) => {
 
         if (videoId) {
             videoId = videoId.replace(/[&#].*/, '');
-            return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=1`;
+            return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&autoplay=1&mute=1&loop=1&playlist=${videoId}&modestbranding=1&showinfo=0&controls=1&vq=hd1080`;
         }
 
         // Handle Vimeo URL formats
@@ -714,9 +714,7 @@ function UserEvaluationFlow({ survey, onSubmit }) {
                     src={embedUrl}
                     title={currentClip.title || "Evaluation Video"}
                     className="video-element"
-                    frameBorder="0"
-                    allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
-                    referrerPolicy="strict-origin-when-cross-origin"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
                 ></iframe>
             </div>
