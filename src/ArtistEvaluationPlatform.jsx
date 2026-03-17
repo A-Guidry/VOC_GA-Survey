@@ -250,8 +250,8 @@ const getEmbedUrl = (url) => {
             }
 
             if (vimeoId) {
-                // Return Vimeo embed URL with autoplay, loop, muted, and quality settings
-                return `https://player.vimeo.com/video/${vimeoId}?autoplay=1&loop=1&muted=1&quality=auto&controls=1`;
+                // Return Vimeo embed URL matching official embed code format
+                return `https://player.vimeo.com/video/${vimeoId}?badge=0&autopause=0&autoplay=1&loop=1&muted=1`;
             }
         }
 
