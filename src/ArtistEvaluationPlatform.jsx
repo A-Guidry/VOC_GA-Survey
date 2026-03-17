@@ -91,11 +91,14 @@ const STYLESHEET = `
 .clip-title { font-size: 1.5rem; font-weight: 300; color: #ffffff; margin: 0; line-height: 1.4; }
 .clip-description { color: #71717a; font-size: 0.875rem; line-height: 1.5; white-space: pre-wrap; margin-top: 0.5rem; }
 
-.video-wrap { width: 100%; aspect-ratio: 16 / 9; background-color: #000000; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid #27272a; margin-top: 0.5rem; margin-bottom: 1.5rem; transition: transform 0.3s ease; transform-origin: center; }
+.video-wrap { width: 100%; aspect-ratio: 16 / 9; background-color: #000000; border-radius: 0.75rem; overflow: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid #27272a; margin-top: 0.5rem; margin-bottom: 1.5rem; transition: transform 0.3s ease; transform-origin: center; }
 .video-element { width: 100%; height: 100%; border: none; object-fit: contain; }
-.video-controls { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-.video-control-group { display: flex; gap: 0.5rem; align-items: center; }
-.video-control-label { color: #71717a; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; }
+.video-controls-card { background-color: rgba(24, 24, 27, 0.4); padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(39, 39, 42, 0.8); margin-top: 2.5rem; }
+@media (min-width: 768px) { .video-controls-card { padding: 2rem; } }
+.video-controls-title { font-size: 1.5rem; font-weight: 300; color: #ffffff; margin-bottom: 1.5rem; margin-top: 0; }
+.video-controls { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.video-control-group { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.video-control-label { color: #71717a; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; margin-right: 0.25rem; }
 .video-control-btn { background-color: #18181b; color: #a1a1aa; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; border: 1px solid #27272a; cursor: pointer; transition: all 0.2s; }
 .video-control-btn:hover { background-color: #27272a; color: #ffffff; }
 .video-control-btn-active { background-color: #3b82f6; color: #ffffff; border-color: #3b82f6; }
@@ -724,63 +727,6 @@ function UserEvaluationFlow({ survey, onSubmit }) {
                 <div className="progress-bar-fill" style={{ width: `${progressPercent}%` }} />
             </div>
 
-            <div className="video-controls">
-                <div className="video-control-group">
-                    <span className="video-control-label">Zoom</span>
-                    <button 
-                        onClick={() => setVideoZoom(100)} 
-                        className={`video-control-btn ${videoZoom === 100 ? 'video-control-btn-active' : ''}`}
-                    >
-                        100%
-                    </button>
-                    <button 
-                        onClick={() => setVideoZoom(125)} 
-                        className={`video-control-btn ${videoZoom === 125 ? 'video-control-btn-active' : ''}`}
-                    >
-                        125%
-                    </button>
-                    <button 
-                        onClick={() => setVideoZoom(150)} 
-                        className={`video-control-btn ${videoZoom === 150 ? 'video-control-btn-active' : ''}`}
-                    >
-                        150%
-                    </button>
-                    <button 
-                        onClick={() => setVideoZoom(200)} 
-                        className={`video-control-btn ${videoZoom === 200 ? 'video-control-btn-active' : ''}`}
-                    >
-                        200%
-                    </button>
-                </div>
-                <div className="video-control-group">
-                    <span className="video-control-label">Speed</span>
-                    <button 
-                        onClick={() => setPlaybackSpeed(0.25)} 
-                        className={`video-control-btn ${playbackSpeed === 0.25 ? 'video-control-btn-active' : ''}`}
-                    >
-                        0.25x
-                    </button>
-                    <button 
-                        onClick={() => setPlaybackSpeed(0.5)} 
-                        className={`video-control-btn ${playbackSpeed === 0.5 ? 'video-control-btn-active' : ''}`}
-                    >
-                        0.5x
-                    </button>
-                    <button 
-                        onClick={() => setPlaybackSpeed(1)} 
-                        className={`video-control-btn ${playbackSpeed === 1 ? 'video-control-btn-active' : ''}`}
-                    >
-                        1x
-                    </button>
-                    <button 
-                        onClick={() => setPlaybackSpeed(2)} 
-                        className={`video-control-btn ${playbackSpeed === 2 ? 'video-control-btn-active' : ''}`}
-                    >
-                        2x
-                    </button>
-                </div>
-            </div>
-
             <div className="video-wrap" style={{ transform: `scale(${videoZoom / 100})` }}>
                 <iframe
                     key={`${currentClip.id}-${playbackSpeed}`}
@@ -875,6 +821,66 @@ function UserEvaluationFlow({ survey, onSubmit }) {
                         {isSubmitting ? 'Saving...' : step === survey.clips.length - 1 ? 'Submit Evaluation' : 'Next Clip'}
                         {step === survey.clips.length - 1 ? <Check size={20} /> : <ArrowRight size={20} />}
                     </button>
+                </div>
+
+                <div className="video-controls-card">
+                    <h3 className="video-controls-title">Video Controls</h3>
+                    <div className="video-controls">
+                        <div className="video-control-group">
+                            <span className="video-control-label">Zoom</span>
+                            <button 
+                                onClick={() => setVideoZoom(100)} 
+                                className={`video-control-btn ${videoZoom === 100 ? 'video-control-btn-active' : ''}`}
+                            >
+                                100%
+                            </button>
+                            <button 
+                                onClick={() => setVideoZoom(125)} 
+                                className={`video-control-btn ${videoZoom === 125 ? 'video-control-btn-active' : ''}`}
+                            >
+                                125%
+                            </button>
+                            <button 
+                                onClick={() => setVideoZoom(150)} 
+                                className={`video-control-btn ${videoZoom === 150 ? 'video-control-btn-active' : ''}`}
+                            >
+                                150%
+                            </button>
+                            <button 
+                                onClick={() => setVideoZoom(200)} 
+                                className={`video-control-btn ${videoZoom === 200 ? 'video-control-btn-active' : ''}`}
+                            >
+                                200%
+                            </button>
+                        </div>
+                        <div className="video-control-group">
+                            <span className="video-control-label">Speed</span>
+                            <button 
+                                onClick={() => setPlaybackSpeed(0.25)} 
+                                className={`video-control-btn ${playbackSpeed === 0.25 ? 'video-control-btn-active' : ''}`}
+                            >
+                                0.25x
+                            </button>
+                            <button 
+                                onClick={() => setPlaybackSpeed(0.5)} 
+                                className={`video-control-btn ${playbackSpeed === 0.5 ? 'video-control-btn-active' : ''}`}
+                            >
+                                0.5x
+                            </button>
+                            <button 
+                                onClick={() => setPlaybackSpeed(1)} 
+                                className={`video-control-btn ${playbackSpeed === 1 ? 'video-control-btn-active' : ''}`}
+                            >
+                                1x
+                            </button>
+                            <button 
+                                onClick={() => setPlaybackSpeed(2)} 
+                                className={`video-control-btn ${playbackSpeed === 2 ? 'video-control-btn-active' : ''}`}
+                            >
+                                2x
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
             </div>
