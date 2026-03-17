@@ -717,7 +717,9 @@ function UserEvaluationFlow({ survey, onSubmit }) {
                         src={embedUrl}
                         title={currentClip.title || "Evaluation Video"}
                         className="video-element"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        frameBorder="0"
+                        allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+                        referrerPolicy="strict-origin-when-cross-origin"
                         allowFullScreen
                     ></iframe>
                 ) : (
