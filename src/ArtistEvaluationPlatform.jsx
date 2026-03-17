@@ -700,8 +700,6 @@ function UserEvaluationFlow({ survey, onSubmit }) {
     const currentClip = survey.clips[step];
     const clipAnswer = answers[currentClip.id] || { rating: '', issues: [], other: '' };
     const embedUrl = getEmbedUrl(currentClip.url);
-    // Use iframe for YouTube embeds, Vimeo player, and Google Drive preview
-    const useIframe = embedUrl.includes('/embed/') || embedUrl.includes('/preview') || embedUrl.includes('player.vimeo.com');
     const progressPercent = ((step) / survey.clips.length) * 100;
 
     return (
@@ -712,28 +710,15 @@ function UserEvaluationFlow({ survey, onSubmit }) {
             </div>
 
             <div className="video-wrap">
-                {useIframe ? (
-                    <iframe
-                        src={embedUrl}
-                        title={currentClip.title || "Evaluation Video"}
-                        className="video-element"
-                        frameBorder="0"
-                        allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
-                        referrerPolicy="strict-origin-when-cross-origin"
-                        allowFullScreen
-                    ></iframe>
-                ) : (
-                    <video
-                        src={embedUrl}
-                        controls
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        className="video-element"
-                        title={currentClip.title || "Evaluation Video"}
-                    />
-                )}
+                <iframe
+                    src={embedUrl}
+                    title={currentClip.title || "Evaluation Video"}
+                    className="video-element"
+                    frameBorder="0"
+                    allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                ></iframe>
             </div>
 
             <div className="clip-header">
