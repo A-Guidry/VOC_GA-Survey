@@ -235,7 +235,7 @@ const getEmbedUrl = (url) => {
 
         if (videoId) {
             videoId = videoId.replace(/[&#].*/, '');
-            return `https://www.youtube.com/embed/${videoId}?rel=0&autoplay=1&mute=1&loop=1&playlist=${videoId}`;
+            return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&autoplay=1&mute=1&loop=1&playlist=${videoId}`;
         }
 
         // Handle Google Drive URL formats
