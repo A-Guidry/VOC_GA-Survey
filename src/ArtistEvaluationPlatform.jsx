@@ -590,7 +590,6 @@ function UserEvaluationFlow({ survey, onSubmit }) {
     const [artistData, setArtistData] = useState({ name: '', email: '', company: '', role: '' });
     const [answers, setAnswers] = useState({});
     const [videoZoom, setVideoZoom] = useState(100);
-    const [playbackSpeed, setPlaybackSpeed] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleNext = () => {
@@ -714,11 +713,6 @@ function UserEvaluationFlow({ survey, onSubmit }) {
     const clipAnswer = answers[currentClip.id] || { rating: '', issues: [], other: '' };
     const embedUrl = getEmbedUrl(currentClip.url);
     const progressPercent = ((step) / survey.clips.length) * 100;
-    
-    // Update embed URL with playback speed parameter
-    const embedUrlWithSpeed = embedUrl.includes('youtube') 
-        ? `${embedUrl}&playbackRate=${playbackSpeed}`
-        : embedUrl;
 
     return (
         <div className="eval-screen">
@@ -729,8 +723,7 @@ function UserEvaluationFlow({ survey, onSubmit }) {
 
             <div className="video-wrap" style={{ transform: `scale(${videoZoom / 100})` }}>
                 <iframe
-                    key={`${currentClip.id}-${playbackSpeed}`}
-                    src={embedUrlWithSpeed}
+                    src={embedUrl}
                     title={currentClip.title || "Evaluation Video"}
                     className="video-element"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -782,33 +775,6 @@ function UserEvaluationFlow({ survey, onSubmit }) {
                             className={`video-control-btn ${videoZoom === 200 ? 'video-control-btn-active' : ''}`}
                         >
                             200%
-                        </button>
-                    </div>
-                    <div className="video-control-group">
-                        <span className="video-control-label">Speed</span>
-                        <button 
-                            onClick={() => setPlaybackSpeed(0.25)} 
-                            className={`video-control-btn ${playbackSpeed === 0.25 ? 'video-control-btn-active' : ''}`}
-                        >
-                            0.25x
-                        </button>
-                        <button 
-                            onClick={() => setPlaybackSpeed(0.5)} 
-                            className={`video-control-btn ${playbackSpeed === 0.5 ? 'video-control-btn-active' : ''}`}
-                        >
-                            0.5x
-                        </button>
-                        <button 
-                            onClick={() => setPlaybackSpeed(1)} 
-                            className={`video-control-btn ${playbackSpeed === 1 ? 'video-control-btn-active' : ''}`}
-                        >
-                            1x
-                        </button>
-                        <button 
-                            onClick={() => setPlaybackSpeed(2)} 
-                            className={`video-control-btn ${playbackSpeed === 2 ? 'video-control-btn-active' : ''}`}
-                        >
-                            2x
                         </button>
                     </div>
                 </div>
