@@ -8,21 +8,21 @@
             "id": "c1",
             "title": "Sample Animation Clip",
             "adminTitle": "Sample Clip",
-            "url": "https://youtu.be/sM1zLWufL4k",
+            "url": "https://www.youtube.com/watch?v=sM1zLWufL4k",
             "description": "This is a sample clip. Replace with your actual motion capture video."
         },
         {
             "id": "clip-1773718020826",
             "title": "Elbow & Knee Strike",
             "adminTitle": "CatsEye Jason S1 Elbow Knee Strike",
-            "url": "https://youtu.be/aqvvQ4cN0uI",
+            "url": "https://youtu.be/aqvvQ4cN0uI?si=dINvxLPoZaTbWT6K",
             "description": "Delivering 3 elbow strikes and 1 knee strike while in a clinching a foe. "
         },
         {
             "id": "clip-1773718107378",
             "title": "Standing Up From a Chair",
             "adminTitle": "Mocopi Jason S10 UpFromChair",
-            "url": "https://youtu.be/MQ9_g84oK84",
+            "url": "https://youtu.be/MQ9_g84oK84?si=U35LUK_0wPa-Vznb",
             "description": "A man stands up from a chair and walks offs off. "
         }
     ]
