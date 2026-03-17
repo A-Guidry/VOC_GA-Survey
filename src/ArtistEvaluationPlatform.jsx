@@ -630,10 +630,11 @@ function UserEvaluationFlow({ survey, onSubmit }) {
     };
 
     if (step === -1) {
+        const logoPath = `${import.meta.env.BASE_URL || '/'}BXD_Wht.png`.replace(/\/\//g, '/');
         return (
             <div className="intro-screen">
                 <div className="intro-content">
-                    <img src="/BXD_Wht.png" alt="BXD Logo" className="intro-logo" />
+                    <img src={logoPath} alt="BXD Logo" className="intro-logo" />
                     <h1 className="intro-title">
                         BXD Motion Capture <br /><span>Quality Evaluation</span>
                     </h1>

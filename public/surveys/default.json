@@ -2,13 +2,14 @@
     "id": "default",
     "name": "Mocap Quality Evaluation",
     "status": "published",
+    "dateCreated": "2026-03-04",
     "clips": [
         {
             "id": "c1",
-            "title": "Cartwheels",
-            "adminTitle": "CatsEye Jason S1 Cartwheel",
-            "url": "https://youtu.be/sM1zLWufL4k",
-            "description": "Actor performs multiple cartwheels"
+            "title": "Sample Animation Clip",
+            "adminTitle": "Sample Clip",
+            "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            "description": "This is a sample clip. Replace with your actual motion capture video."
         },
         {
             "id": "clip-1773718020826",
