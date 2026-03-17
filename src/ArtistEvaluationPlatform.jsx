@@ -60,6 +60,8 @@ const STYLESHEET = `
 /* User Intro Screen */
 .intro-screen { flex: 1; display: flex; align-items: center; justify-content: center; padding: 1.5rem; animation: slideUpFadeIn 0.7s; }
 .intro-content { max-width: 36rem; width: 100%; }
+.intro-logo { width: 120px; height: auto; margin-bottom: 2rem; opacity: 0.9; }
+@media (min-width: 768px) { .intro-logo { width: 150px; } }
 .intro-title { font-size: 2.25rem; font-weight: 300; margin-bottom: 2rem; color: #ffffff; line-height: 1.25; }
 @media (min-width: 768px) { .intro-title { font-size: 3rem; } }
 .intro-title span { color: #71717a; }
@@ -631,6 +633,7 @@ function UserEvaluationFlow({ survey, onSubmit }) {
         return (
             <div className="intro-screen">
                 <div className="intro-content">
+                    <img src="/BXD_Wht.png" alt="BXD Logo" className="intro-logo" />
                     <h1 className="intro-title">
                         BXD Motion Capture <br /><span>Quality Evaluation</span>
                     </h1>
@@ -668,8 +671,8 @@ function UserEvaluationFlow({ survey, onSubmit }) {
                     <div className="outro-icon-wrap">
                         <Check size={40} />
                     </div>
-                    <h1 className="outro-title">Evaluation Complete</h1>
-                    <p className="outro-subtitle">Thank you, {artistData.name}. Your BXD quality feedback has been recorded.</p>
+                    <h1 className="outro-title">Thank You</h1>
+                    <p className="outro-subtitle">Thank you for your time. Your insights are invaluable as we refine our development efforts to better let you be creative.</p>
                 </div>
             </div>
         );
@@ -807,6 +810,7 @@ function UserEvaluationFlow({ survey, onSubmit }) {
 function AdminDashboard({ surveys, setSurveys, activeAdminSurveyId, setActiveAdminSurveyId }) {
     const [activeTab, setActiveTab] = useState('surveys');
     const [surveyCounts, setSurveyCounts] = useState({});
+    const [isSyncing, setIsSyncing] = useState(false);
 
     const activeAdminSurvey = surveys.find(s => s.id === activeAdminSurveyId);
 
@@ -917,6 +921,43 @@ function AdminDashboard({ surveys, setSurveys, activeAdminSurveyId, setActiveAdm
         window.location.reload();
     };
 
+    const syncFromGit = async () => {
+        setIsSyncing(true);
+        try {
+            const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+            const indexRes = await fetch(`${base}/surveys/index.json?t=${Date.now()}`);
+            if (!indexRes.ok) throw new Error('Failed to fetch index.json');
+            
+            const index = await indexRes.json();
+            const ids = Array.isArray(index.surveys) ? index.surveys : [];
+            
+            const loadedSurveys = await Promise.all(
+                ids.map(async id => {
+                    try {
+                        const res = await fetch(`${base}/surveys/${id}.json?t=${Date.now()}`);
+                        if (!res.ok) return null;
+                        return await res.json();
+                    } catch {
+                        return null;
+                    }
+                })
+            );
+            
+            const validSurveys = loadedSurveys.filter(Boolean);
+            setSurveys(validSurveys);
+            if (validSurveys.length > 0 && !validSurveys.find(s => s.id === activeAdminSurveyId)) {
+                setActiveAdminSurveyId(validSurveys[0].id);
+            }
+            
+            alert(`Successfully synced ${validSurveys.length} survey(s) from Git repository.`);
+        } catch (err) {
+            console.error('Sync failed:', err);
+            alert(`Sync failed: ${err.message}`);
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
     return (
         <div className="admin-screen">
             <div className="admin-header">
@@ -924,14 +965,25 @@ function AdminDashboard({ surveys, setSurveys, activeAdminSurveyId, setActiveAdm
                     <h1 className="admin-title">Platform Management</h1>
                     <p className="admin-desc">Configure evaluation clips and export BXD mocap data.</p>
                 </div>
-                <button
-                    onClick={clearAdminSession}
-                    className="btn-secondary"
-                    title="Clears session cache so you can see a fresh random survey assignment in Preview"
-                    style={{ marginTop: '0.25rem', whiteSpace: 'nowrap', flexShrink: 0 }}
-                >
-                    🔄 Reset Preview
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                    <button
+                        onClick={syncFromGit}
+                        disabled={isSyncing}
+                        className="btn-secondary"
+                        title="Reload surveys from public/surveys/ folder (Git repository)"
+                        style={{ whiteSpace: 'nowrap', flexShrink: 0, backgroundColor: isSyncing ? '#3f3f46' : '#2563eb', color: '#ffffff' }}
+                    >
+                        {isSyncing ? '⏳ Syncing...' : '🔄 Sync from Git'}
+                    </button>
+                    <button
+                        onClick={clearAdminSession}
+                        className="btn-secondary"
+                        title="Clears session cache so you can see a fresh random survey assignment in Preview"
+                        style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                    >
+                        🔄 Reset Preview
+                    </button>
+                </div>
             </div>
 
             <div className="admin-tabs">
