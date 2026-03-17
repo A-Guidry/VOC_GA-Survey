@@ -249,8 +249,8 @@ const getEmbedUrl = (url) => {
             }
 
             if (driveId) {
-                // Return direct download URL for HTML5 video tag (better scrubbing)
-                return `https://drive.google.com/uc?export=download&id=${driveId}`;
+                // Return streaming URL for HTML5 video tag (better scrubbing than iframe)
+                return `https://drive.google.com/uc?export=view&id=${driveId}`;
             }
         }
 
