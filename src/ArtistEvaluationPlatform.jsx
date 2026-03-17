@@ -235,7 +235,7 @@ const getEmbedUrl = (url) => {
 
         if (videoId) {
             videoId = videoId.replace(/[&#].*/, '');
-            return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&autoplay=1&mute=1&loop=1&playlist=${videoId}&modestbranding=1&showinfo=0&controls=1&vq=hd1080`;
+            return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=1`;
         }
 
         // Handle Vimeo URL formats
