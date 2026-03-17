@@ -28,7 +28,7 @@ const STYLESHEET = `
 }
 
 /* Header */
-.header-container { position: fixed; top: 0; left: 0; right: 0; padding: 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 50; background: linear-gradient(to bottom, rgba(9,9,11,0.9), transparent); pointer-events: none; }
+.header-container { position: fixed; top: 0; left: 0; right: 0; padding: 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 50; background-color: #000000; pointer-events: none; }
 .header-brand { font-weight: bold; letter-spacing: 0.1em; color: #a1a1aa; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; pointer-events: auto; }
 .header-controls { display: flex; background-color: #18181b; border-radius: 9999px; padding: 0.25rem; border: 1px solid #27272a; pointer-events: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
 .mode-btn { padding: 0.375rem 1rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; transition: all 0.2s; background: transparent; border: none; color: #a1a1aa; cursor: pointer; }
