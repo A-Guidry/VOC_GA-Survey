@@ -1070,23 +1070,33 @@ function AdminDashboard({ surveys, setSurveys, activeAdminSurveyId, setActiveAdm
         const msg        = `chore: update survey "${activeAdminSurvey.name}" [${timestamp}]`;
 
         try {
-            const [surveyResult, indexResult] = await Promise.all([
-                pushToGitHub(`public/surveys/${activeAdminSurvey.id}.json`, surveyJson, msg),
-                pushToGitHub('public/surveys/index.json', indexJson, msg),
-            ]);
-
-            if (surveyResult.ok && indexResult.ok) {
-                showBanner('saved');
-            } else {
-                const errMsg = (!surveyResult.ok ? surveyResult.error : indexResult.error) || 'Unknown error';
-                console.error('GitHub push failed:', errMsg);
+            // Push sequentially — parallel pushes cause 409 SHA conflicts
+            // since GitHub updates the repo tree between requests.
+            const surveyResult = await pushToGitHub(
+                `public/surveys/${activeAdminSurvey.id}.json`, surveyJson, msg
+            );
+            if (!surveyResult.ok) {
+                console.error('GitHub push failed (survey file):', surveyResult.error);
                 showBanner('error', 6000);
+                return;
             }
+
+            const indexResult = await pushToGitHub(
+                'public/surveys/index.json', indexJson, msg
+            );
+            if (!indexResult.ok) {
+                console.error('GitHub push failed (index.json):', indexResult.error);
+                showBanner('error', 6000);
+                return;
+            }
+
+            showBanner('saved');
         } catch (e) {
             console.error('saveQuiz exception:', e);
             showBanner('error', 6000);
         }
     };
+
 
     const clearAdminSession = () => {
         sessionStorage.removeItem('bxd_survey_index');
