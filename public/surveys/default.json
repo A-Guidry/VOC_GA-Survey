@@ -1,29 +1,127 @@
 {
     "id": "default",
     "name": "Mocap Quality Evaluation",
-    "status": "published",
+    "status": "draft",
     "dateCreated": "2026-03-04",
     "clips": [
         {
             "id": "c1",
-            "title": "Cartwheels",
-            "adminTitle": "CatsEye Jason S1 Cartwheel",
-            "url": "https://youtu.be/-1h3D1YUSKs",
-            "description": "Actor performs multiple cartwheels"
+            "title": "Sidestepping",
+            "adminTitle": "Captury_Jason_S5_Sidestep_Moderate",
+            "url": "https://youtu.be/w70MlwXOaZA",
+            "description": "Actor performs a leg over leg sidestep motion. No hands were captured in this animation"
         },
         {
             "id": "clip-1773718020826",
-            "title": "Elbow & Knee Strike",
-            "adminTitle": "CatsEye Jason S1 Elbow Knee Strike",
-            "url": "https://youtu.be/aqvvQ4cN0uI",
-            "description": "Delivering 3 elbow strikes and 1 knee strike while in a clinching a foe. "
+            "title": "Dodging Punches",
+            "adminTitle": "Captury_Jason_S01_Doge_Punches_Very_Hard",
+            "url": "https://youtu.be/nyhxNM7d3Zs",
+            "description": "Actor is dodging a series of punches. No hands were captured in this animation"
         },
         {
             "id": "clip-1773718107378",
-            "title": "Standing Up From a Chair",
-            "adminTitle": "Mocopi Jason S10 UpFromChair",
-            "url": "https://youtu.be/MQ9_g84oK84",
-            "description": "A man stands up from a chair and walks offs off. "
+            "title": "Sprinting",
+            "adminTitle": "mocopi_Jason_S6_sprint_Hard",
+            "url": "https://youtu.be/EHs8nXUFtLo",
+            "description": "Actor sprinting across the screen. No hands were captured in this animation"
+        },
+        {
+            "id": "clip-1776976013567",
+            "title": "Walking in a Figure 8",
+            "adminTitle": "Xsens_Jason_S7_Figure8__Easy",
+            "url": "https://youtu.be/iH448ZfB8EU",
+            "description": "Actor walking in a figure 8 pattern. No hands were captured in this animation"
+        },
+        {
+            "id": "clip-1776976015150",
+            "title": "Reaching on a high shelf",
+            "adminTitle": "mocopi_Thekla_S8b_reachingShelf_Moderate",
+            "url": "https://youtu.be/dYMf_m9rcJQ",
+            "description": "Actor is reaching for an object on a high shelf. No hands were captured in this animation"
+        },
+        {
+            "id": "clip-1776976015692",
+            "title": "Exiting a low vehicle",
+            "adminTitle": "LightStorm_Jason_S6_Vechicle_Exit_Moderate.mov",
+            "url": "https://youtu.be/2nS-nBfeeXE",
+            "description": "Actor is exiting specifically a vehicle that is low to the ground. No hands were captured in this animation"
+        },
+        {
+            "id": "clip-1776976016147",
+            "title": "Animation Clip 7",
+            "adminTitle": "",
+            "url": "",
+            "description": ""
+        },
+        {
+            "id": "clip-1776976016664",
+            "title": "Animation Clip 8",
+            "adminTitle": "",
+            "url": "",
+            "description": ""
+        },
+        {
+            "id": "clip-1776976017145",
+            "title": "Animation Clip 9",
+            "adminTitle": "",
+            "url": "",
+            "description": ""
+        },
+        {
+            "id": "clip-1776976017574",
+            "title": "Animation Clip 10",
+            "adminTitle": "",
+            "url": "",
+            "description": ""
+        },
+        {
+            "id": "clip-1776976017985",
+            "title": "Animation Clip 11",
+            "adminTitle": "",
+            "url": "",
+            "description": ""
+        },
+        {
+            "id": "clip-1776976018414",
+            "title": "Animation Clip 12",
+            "adminTitle": "",
+            "url": "",
+            "description": ""
+        },
+        {
+            "id": "clip-1776976018799",
+            "title": "Animation Clip 13",
+            "adminTitle": "",
+            "url": "",
+            "description": ""
+        },
+        {
+            "id": "clip-1776976019237",
+            "title": "Animation Clip 14",
+            "adminTitle": "",
+            "url": "",
+            "description": ""
+        },
+        {
+            "id": "clip-1776976019613",
+            "title": "Animation Clip 15",
+            "adminTitle": "",
+            "url": "",
+            "description": ""
+        },
+        {
+            "id": "clip-1776976020059",
+            "title": "Animation Clip 16",
+            "adminTitle": "",
+            "url": "",
+            "description": ""
+        },
+        {
+            "id": "clip-1776976020470",
+            "title": "Animation Clip 17",
+            "adminTitle": "",
+            "url": "",
+            "description": ""
         }
     ]
 }
