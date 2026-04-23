@@ -200,6 +200,21 @@ const STYLESHEET = `
 .btn-export:hover:not(:disabled) { background-color: #3b82f6; }
 .btn-export:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* Save Button & Banner */
+.btn-save { background-color: #16a34a; color: #ffffff; padding: 0.625rem 1.25rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem; border: none; cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; }
+.btn-save:hover:not(:disabled) { background-color: #15803d; }
+.btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-save-saving { background-color: #1d4ed8; border: 1px solid #3b82f6; }
+.btn-save-saved { background-color: #14532d; border: 1px solid #16a34a; }
+.btn-save-error { background-color: #7f1d1d; border: 1px solid #ef4444; }
+.save-banner { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(0); background-color: #14532d; border: 1px solid #16a34a; color: #4ade80; padding: 0.875rem 2rem; border-radius: 0.75rem; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.625rem; box-shadow: 0 10px 40px rgba(0,0,0,0.4); z-index: 200; animation: saveBannerIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.save-banner-error { background-color: #450a0a; border-color: #ef4444; color: #fca5a5; }
+.save-banner-exit { animation: saveBannerOut 0.3s ease-in forwards; }
+@keyframes saveBannerIn { from { opacity: 0; transform: translateX(-50%) translateY(1.5rem); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+@keyframes saveBannerOut { from { opacity: 1; transform: translateX(-50%) translateY(0); } to { opacity: 0; transform: translateX(-50%) translateY(1.5rem); } }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+
 .table-container { background-color: #18181b; border: 1px solid #27272a; border-radius: 0.75rem; overflow-x: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
 .data-table { width: 100%; text-align: left; font-size: 0.875rem; color: #a1a1aa; white-space: nowrap; border-collapse: collapse; }
 .table-thead { background-color: #09090b; color: #d4d4d8; font-size: 0.75rem; text-transform: uppercase; font-weight: 500; }
@@ -246,7 +261,7 @@ const getEmbedUrl = (url) => {
 
         if (videoId) {
             videoId = videoId.replace(/[&#].*/, '');
-            return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&autoplay=1&mute=1&loop=1&playlist=${videoId}&modestbranding=1&showinfo=0&controls=1&vq=hd1080`;
+            return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&autoplay=1&mute=1&loop=1&playlist=${videoId}&modestbranding=1&showinfo=0&controls=1&vq=hd1080&hd=1`;
         }
 
         // Handle Vimeo URL formats
@@ -310,6 +325,68 @@ const ISSUE_OPTIONS = [
 ];
 
 const ADMIN_PASSCODE = import.meta.env.VITE_ADMIN_PASSCODE || 'admin123';
+
+// --- GitHub API Config ---
+const GITHUB_TOKEN  = import.meta.env.VITE_GITHUB_TOKEN || '';
+const GITHUB_REPO   = 'A-Guidry/VOC_GA-Survey';
+const GITHUB_BRANCH = 'main';
+
+/**
+ * Pushes (creates or updates) a file in the GitHub repo via the Contents API.
+ * @param {string} path    - Repo-relative path, e.g. 'public/surveys/default.json'
+ * @param {string} content - File content as a plain string (will be base64-encoded)
+ * @param {string} message - Git commit message
+ * @returns {Promise<{ok: boolean, error?: string}>}
+ */
+async function pushToGitHub(path, content, message) {
+    const apiBase = `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`;
+    const headers = {
+        'Authorization': `Bearer ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json',
+    };
+
+    // 1. Fetch existing file SHA (required by GitHub to update an existing file)
+    let sha = undefined;
+    try {
+        const getRes = await fetch(`${apiBase}?ref=${GITHUB_BRANCH}`, { headers });
+        if (getRes.ok) {
+            const existing = await getRes.json();
+            sha = existing.sha;
+        } else if (getRes.status !== 404) {
+            const err = await getRes.json();
+            return { ok: false, error: err.message || `HTTP ${getRes.status}` };
+        }
+        // 404 = file doesn't exist yet → create it (no sha needed)
+    } catch (e) {
+        return { ok: false, error: e.message };
+    }
+
+    // 2. Base64-encode content (TextEncoder handles UTF-8 safely)
+    const encoded = btoa(
+        Array.from(new TextEncoder().encode(content))
+            .map(b => String.fromCharCode(b)).join('')
+    );
+
+    // 3. PUT to create/update
+    try {
+        const body = { message, content: encoded, branch: GITHUB_BRANCH };
+        if (sha) body.sha = sha;
+
+        const putRes = await fetch(apiBase, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify(body),
+        });
+
+        if (putRes.ok) return { ok: true };
+        const err = await putRes.json();
+        return { ok: false, error: err.message || `HTTP ${putRes.status}` };
+    } catch (e) {
+        return { ok: false, error: e.message };
+    }
+}
 
 // --- Main Application Component ---
 
@@ -862,6 +939,8 @@ function AdminDashboard({ surveys, setSurveys, activeAdminSurveyId, setActiveAdm
     const [activeTab, setActiveTab] = useState('surveys');
     const [surveyCounts, setSurveyCounts] = useState({});
     const [isSyncing, setIsSyncing] = useState(false);
+    const [saveStatus, setSaveStatus] = useState('idle'); // 'idle' | 'saved' | 'exiting'
+    const saveBannerTimers = useRef([]);
 
     const activeAdminSurvey = surveys.find(s => s.id === activeAdminSurveyId);
 
@@ -941,9 +1020,8 @@ function AdminDashboard({ surveys, setSurveys, activeAdminSurveyId, setActiveAdm
         setSurveys(surveys.map(s => s.id === activeAdminSurveyId ? { ...s, clips: updatedClips } : s));
     };
 
-    const saveToFile = () => {
-        if (!activeAdminSurvey) return;
-
+    /** Trigger file downloads as a fallback when no GitHub token is configured */
+    const downloadFallback = () => {
         const dl = (filename, data) => {
             const blob = new Blob([JSON.stringify(data, null, 4)], { type: 'application/json' });
             const link = document.createElement('a');
@@ -954,15 +1032,60 @@ function AdminDashboard({ surveys, setSurveys, activeAdminSurveyId, setActiveAdm
             link.click();
             document.body.removeChild(link);
         };
-
-        // 1. Download the individual survey file
         const surveyData = { ...activeAdminSurvey };
         dl(`${activeAdminSurvey.id}.json`, surveyData);
-
-        // 2. Download the updated index.json (staggered to avoid popup blockers)
         const allIds = surveys.map(s => s.id);
         if (!allIds.includes(activeAdminSurvey.id)) allIds.push(activeAdminSurvey.id);
         setTimeout(() => dl('index.json', { surveys: allIds }), 500);
+    };
+
+    const showBanner = (status, duration = 3500) => {
+        saveBannerTimers.current.forEach(clearTimeout);
+        setSaveStatus(status);
+        const t1 = setTimeout(() => setSaveStatus('exiting'), duration);
+        const t2 = setTimeout(() => setSaveStatus('idle'), duration + 400);
+        saveBannerTimers.current = [t1, t2];
+    };
+
+    const saveQuiz = async () => {
+        if (!activeAdminSurvey) return;
+
+        // --- No token: fall back to file download ---
+        if (!GITHUB_TOKEN) {
+            downloadFallback();
+            showBanner('saved');
+            return;
+        }
+
+        // --- GitHub API push ---
+        setSaveStatus('saving');
+        saveBannerTimers.current.forEach(clearTimeout);
+
+        const allIds = surveys.map(s => s.id);
+        if (!allIds.includes(activeAdminSurvey.id)) allIds.push(activeAdminSurvey.id);
+
+        const surveyJson = JSON.stringify({ ...activeAdminSurvey }, null, 4);
+        const indexJson  = JSON.stringify({ surveys: allIds }, null, 4);
+        const timestamp  = new Date().toISOString().split('T')[0];
+        const msg        = `chore: update survey "${activeAdminSurvey.name}" [${timestamp}]`;
+
+        try {
+            const [surveyResult, indexResult] = await Promise.all([
+                pushToGitHub(`public/surveys/${activeAdminSurvey.id}.json`, surveyJson, msg),
+                pushToGitHub('public/surveys/index.json', indexJson, msg),
+            ]);
+
+            if (surveyResult.ok && indexResult.ok) {
+                showBanner('saved');
+            } else {
+                const errMsg = (!surveyResult.ok ? surveyResult.error : indexResult.error) || 'Unknown error';
+                console.error('GitHub push failed:', errMsg);
+                showBanner('error', 6000);
+            }
+        } catch (e) {
+            console.error('saveQuiz exception:', e);
+            showBanner('error', 6000);
+        }
     };
 
     const clearAdminSession = () => {
@@ -1145,15 +1268,41 @@ function AdminDashboard({ surveys, setSurveys, activeAdminSurveyId, setActiveAdm
 
                     <div className="section-header-row">
                         <h2 className="section-title" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>Clips to Evaluate: {activeAdminSurvey.name}</h2>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button onClick={saveToFile} className="btn-secondary" title="Download JSON files → put in public/surveys/ → commit">
-                                <Download size={16} /> Save to File
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <button
+                                onClick={saveQuiz}
+                                disabled={saveStatus === 'saving'}
+                                className={`btn-save
+                                    ${saveStatus === 'saving' ? 'btn-save-saving' : ''}
+                                    ${saveStatus === 'saved' || saveStatus === 'exiting' ? 'btn-save-saved' : ''}
+                                    ${saveStatus === 'error' ? 'btn-save-error' : ''}`}
+                                title={GITHUB_TOKEN ? 'Push survey JSON directly to GitHub' : 'Download JSON files to commit manually'}
+                            >
+                                {saveStatus === 'idle'   && <><Download size={16} /> {GITHUB_TOKEN ? 'Save to GitHub' : 'Save Quiz'}</>}
+                                {saveStatus === 'saving' && <><div className="spinner" /> Saving…</>}
+                                {(saveStatus === 'saved' || saveStatus === 'exiting') && <><Check size={16} /> Saved!</>}
+                                {saveStatus === 'error'  && <>✗ Save Failed</>}
                             </button>
                             <button onClick={addClip} className="btn-secondary">
                                 <Plus size={16} /> Add Clip
                             </button>
                         </div>
                     </div>
+
+                    {/* Save confirmation / error banner */}
+                    {(saveStatus === 'saved' || saveStatus === 'exiting') && (
+                        <div className={`save-banner ${saveStatus === 'exiting' ? 'save-banner-exit' : ''}`}>
+                            <Check size={20} />
+                            {GITHUB_TOKEN
+                                ? 'Saved to GitHub! GitHub Actions will deploy in ~60 seconds.'
+                                : 'JSON files downloaded — move them to public/surveys/ and commit.'}
+                        </div>
+                    )}
+                    {(saveStatus === 'error' || (saveStatus === 'exiting' && false)) && (
+                        <div className={`save-banner save-banner-error ${saveStatus === 'exiting' ? 'save-banner-exit' : ''}`}>
+                            ✗ GitHub push failed. Check the console for details, or verify your VITE_GITHUB_TOKEN is set correctly.
+                        </div>
+                    )}
 
                     <div className="clip-list">
                         {activeAdminSurvey.clips.map((clip, index) => (
