@@ -1,7 +1,7 @@
 {
     "id": "default",
     "name": "Mocap Quality Evaluation",
-    "status": "draft",
+    "status": "published",
     "dateCreated": "2026-03-04",
     "clips": [
         {
@@ -48,52 +48,52 @@
         },
         {
             "id": "clip-1776976016147",
-            "title": "Animation Clip 7",
-            "adminTitle": "",
-            "url": "",
-            "description": ""
+            "title": "Deep Sofa Relaxing",
+            "adminTitle": "CatsEye_Jason_S10b_Deep_Sofa_Sit_Moderate",
+            "url": "https://youtu.be/W-tDyONDHFI",
+            "description": "Actor laying down on a deep sofa relaxing. No hands were captured in this animation"
         },
         {
             "id": "clip-1776976016664",
-            "title": "Animation Clip 8",
-            "adminTitle": "",
-            "url": "",
-            "description": ""
+            "title": "Blindly Firing From Behind A Box",
+            "adminTitle": "Mocopi_Jason_S4_blindlyFiring_Moderate",
+            "url": "https://youtu.be/k3da-ibw9I4",
+            "description": "Actor blindly firing from behind a box. No hands were captured in this animation"
         },
         {
             "id": "clip-1776976017145",
-            "title": "Animation Clip 9",
-            "adminTitle": "",
-            "url": "",
-            "description": ""
+            "title": "Zig Zag Jumping",
+            "adminTitle": "CatsEye_Thekla_S06_ZigZag_Jump_Hard",
+            "url": "https://youtu.be/1rJDP8PCI2s",
+            "description": "Actor zig zag jumping. No hands were captured in this animation"
         },
         {
             "id": "clip-1776976017574",
-            "title": "Animation Clip 10",
-            "adminTitle": "",
-            "url": "",
-            "description": ""
+            "title": "The Moonwalk",
+            "adminTitle": "Xsens_Thekla_S2_Moonwalk_Moderate",
+            "url": "https://youtu.be/vUd1s-AoVA4",
+            "description": "Actor performing the moonwalk dance move. No hands were captured in this animation"
         },
         {
             "id": "clip-1776976017985",
-            "title": "Animation Clip 11",
-            "adminTitle": "",
-            "url": "",
-            "description": ""
+            "title": "Roof Hoist ",
+            "adminTitle": "CatsEye_Thekla_S06_Roof_Hoist_Moderate",
+            "url": "https://youtu.be/q46DiCjyIdg",
+            "description": "Actor pulling injured partner up on top of a roof. No hands were captured in this animation"
         },
         {
             "id": "clip-1776976018414",
-            "title": "Animation Clip 12",
-            "adminTitle": "",
-            "url": "",
-            "description": ""
+            "title": " Knee & Elbow Strikes",
+            "adminTitle": "LightStorm_Jason_S1_Knee_Elbow_Strike_Very_Hard",
+            "url": "https://youtu.be/8XRfEaRcLYA",
+            "description": "Actor performing knee & elbow strikes. No hands were captured in this animation"
         },
         {
             "id": "clip-1776976018799",
-            "title": "Animation Clip 13",
-            "adminTitle": "",
-            "url": "",
-            "description": ""
+            "title": "Sward Forward Stab Thrust",
+            "adminTitle": "Xsens_Jason_S2_Stab_Thrust_Hard",
+            "url": "https://youtu.be/xEdUyXPr-pg",
+            "description": "Actor thrusting forward to stab with a sward. No hands were captured in this animation"
         },
         {
             "id": "clip-1776976019237",
