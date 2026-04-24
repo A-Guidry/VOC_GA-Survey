@@ -97,31 +97,234 @@
         },
         {
             "id": "clip-1776976019237",
-            "title": "Animation Clip 14",
-            "adminTitle": "",
-            "url": "",
-            "description": ""
+            "title": "Speed Vault",
+            "adminTitle": "Captury_Jason_S8_Speed_Vault_Hard",
+            "url": "https://youtu.be/hzMsabpifJo",
+            "description": "Actor performing a speed vault. No hands were captured in this animation"
         },
         {
             "id": "clip-1776976019613",
-            "title": "Animation Clip 15",
-            "adminTitle": "",
-            "url": "",
-            "description": ""
+            "title": "Grapple Escape",
+            "adminTitle": "mocopi_Thekla_S1_Grapple_Escape_Hard",
+            "url": "https://youtu.be/XR2Hj7O05o0",
+            "description": "Actor performing a grapple escape. No hands were captured in this animation"
         },
         {
             "id": "clip-1776976020059",
-            "title": "Animation Clip 16",
-            "adminTitle": "",
-            "url": "",
-            "description": ""
+            "title": "Tiptoe  Walk",
+            "adminTitle": "Xsens_Jason_S7_TipToe__Easy",
+            "url": "https://youtu.be/q-JKwKxYWHE",
+            "description": "Actor performing a tiptoe walk. No hands were captured in this animation"
         },
         {
             "id": "clip-1776976020470",
-            "title": "Animation Clip 17",
-            "adminTitle": "",
-            "url": "",
-            "description": ""
+            "title": "Body Weight Squats",
+            "adminTitle": "Captury_Jason_S7_Squats_Easy",
+            "url": "https://youtu.be/mc1Qj1jpgEs",
+            "description": "Actor performing body weight squats. No hands were captured in this animation"
+        },
+        {
+            "id": "clip-1776994937028",
+            "title": "Drinking Idol",
+            "adminTitle": "LightStorm_Jason_S5_Drinking_Moderate",
+            "url": "https://youtu.be/wwBkpCZt8qg",
+            "description": "Actor idly drinking out of a cup. No hands were captured in this animation"
+        },
+        {
+            "id": "clip-1776994937639",
+            "title": "Standing Up From A Chair",
+            "adminTitle": "Xsens_Thekla_S6_Stand_From_Chair_Moderate",
+            "url": "https://youtu.be/jsJOQsdHs6I",
+            "description": "Actor standing up from a chair"
+        },
+        {
+            "id": "clip-1776994938086",
+            "title": "Prone Burst to Sprint",
+            "adminTitle": "Captury_Jason_S10_Prone_Burst_Hard",
+            "url": "https://youtu.be/xVFptJk07qc",
+            "description": "Actor going from a prone position to a sprint. No hands were captured in this animation"
+        },
+        {
+            "id": "clip-1776994938515",
+            "title": "Sawing Wood",
+            "adminTitle": "mocopi_Thekla_S5_sawingWood_Moderate",
+            "url": "https://youtu.be/VkUq_l9ZbJA",
+            "description": "Actor sawing wood on the ground. No hands were captured in this animation "
+        },
+        {
+            "id": "clip-1776994938909",
+            "title": "Muay Thai Clinch",
+            "adminTitle": "Xsens_Jason_S7Muay_Thai_Clinch_Very_Hard",
+            "url": "https://youtu.be/i7BaBG1-Qic",
+            "description": "Actor performing a Muay Thai clinch action. No hands were captured in this animation"
+        },
+        {
+            "id": "clip-1776994939294",
+            "title": "Walking Backward",
+            "adminTitle": "mocopi_Jason_S5_Walking_backward_Easy",
+            "url": "https://youtu.be/UC9x_y6QZRE",
+            "description": "Actor walking backward. No hands were captured in this animation"
+        },
+        {
+            "id": "clip-1776994940002",
+            "title": "Walking In A Figure 8",
+            "adminTitle": "Captury_Jason_S7_Figure8_Moderate",
+            "url": "https://youtu.be/fabMYJhwjv0",
+            "description": "Actor walking in a figure 8 pattern. No hands were captured in this animation."
+        },
+        {
+            "id": "clip-1776994940440",
+            "title": "Empty vs Full Swap",
+            "adminTitle": "mocopi_Jason_S8_Empty_vs_Full_Swap_Hard",
+            "url": "https://youtu.be/As_MS7jVsck",
+            "description": "Actor picking up an empty box expecting it to be full. No hands were captured in this animation."
+        },
+        {
+            "id": "clip-1776994941148",
+            "title": "Stealth Walk",
+            "adminTitle": "CatsEye_Thekla_S06_Stealth_Walk_Moderate",
+            "url": "https://youtu.be/hEbe-1gtQbs",
+            "description": "Actor sneaking up on someone. No hands were captured in this animation"
+        },
+        {
+            "id": "clip-1776996572790",
+            "title": "Jazz Layout",
+            "adminTitle": "Xsens_Thekla_S2_Jazz_Layout_Moderate",
+            "url": "https://youtu.be/X1zztmyvtVI",
+            "description": "Actor performing a jazz layout dance move. No hands were captured in this animation"
+        },
+        {
+            "id": "clip-1776996573297",
+            "title": "Walking and Sitting In a Chair",
+            "adminTitle": "CatsEye_Thekla_S06_Sitting_Moderate",
+            "url": "https://youtu.be/DoJM74uhtn4",
+            "description": "Actor walking and sitting in a chair. No hands were captured in this animation."
+        },
+        {
+            "id": "clip-1776996573516",
+            "title": "Walking Up Stairs",
+            "adminTitle": "LightStorm_Jason_S9b_Up_Stairs_Hard",
+            "url": "https://youtu.be/UQOQsI5WBmk",
+            "description": "Actor walking up stairs. No hands were captured in this animation."
+        },
+        {
+            "id": "clip-1776996573735",
+            "title": "Balance on a Beam",
+            "adminTitle": "Captury_Jason_S8_Balance_wobble_Moderate",
+            "url": "https://youtu.be/2yD6fhshD8A",
+            "description": "Actor walking on a balancing beam. No hands were captured in this animation."
+        },
+        {
+            "id": "clip-1776996573920",
+            "title": "Body Weight Squats",
+            "adminTitle": "CatsEye_Jason_S7_Squat_Easy",
+            "url": "https://youtu.be/ywKXsjUmrNw",
+            "description": "Actor performing body weight squats. No hands were captured in this animation."
+        },
+        {
+            "id": "clip-1776996574085",
+            "title": "Walking with a Limp",
+            "adminTitle": "CatsEye_Jason_S7_LimpWalking_Easy",
+            "url": "https://youtu.be/zzGbO6iHB5g",
+            "description": "Actor is walking with a limp after being injured. No hands were captured in this animation."
+        },
+        {
+            "id": "clip-1776996574286",
+            "title": "Knocked Back by an Explosion",
+            "adminTitle": "CatsEye_Thekla_S010_Knockback_Explosion_Hard",
+            "url": "https://youtu.be/dmSSNPZUZKc",
+            "description": "Actor is knocked back by an explosion. No hands were captured in this animation."
+        },
+        {
+            "id": "clip-1776996574487",
+            "title": "Boxing Dodge Series",
+            "adminTitle": "mocopi_Thekla_S1_Dodge_Series_Very_Hard",
+            "url": "https://youtu.be/gg4A7V89R4Q",
+            "description": "Actor dodging a series of punches. No hands were captured in this animation"
+        },
+        {
+            "id": "clip-1776998356653",
+            "title": "Walking Backward",
+            "adminTitle": "Captury_Jason_S5_Walking_Backward_Easy",
+            "url": "https://youtu.be/JGPcQ1QVkyk",
+            "description": "Actor walking backward. No hands were captured in this animation."
+        },
+        {
+            "id": "clip-1776998356906",
+            "title": "Kicking a Chair",
+            "adminTitle": "mocopi_Jason_S5_ChairKick_Moderate",
+            "url": "https://youtu.be/dZmhqHzaE18",
+            "description": "Actor kicking a chair. No hands were captured in this animation."
+        },
+        {
+            "id": "clip-1776998357108",
+            "title": "Kong Vault",
+            "adminTitle": "CatsEye_Thekla_S08b_Kong_Vault_Very_Hard",
+            "url": "https://youtu.be/oXmgajdE6yo",
+            "description": "Actor performing a kong vault over an object. No hands were captured in this animation."
+        },
+        {
+            "id": "clip-1776998357326",
+            "title": "Walking on Tiptoe",
+            "adminTitle": "LightStorm_Jason_S07_TipToe_Easy",
+            "url": "https://youtu.be/Ke4f1kVUplI",
+            "description": "Actor walking on tiptoe. No hands were captured in this animation."
+        },
+        {
+            "id": "clip-1776998357510",
+            "title": "Run to Jump",
+            "adminTitle": "CatsEye_Thekla_S06_Run_Jump_Hard",
+            "url": "https://youtu.be/wK5Xz3DNxSg",
+            "description": "Actor running into a jump. No hands were captured in this animation."
+        },
+        {
+            "id": "clip-1776998357738",
+            "title": "Enjoying a Drink",
+            "adminTitle": "mocopi_Thekla_S5_drinking_Easy",
+            "url": "https://youtu.be/3z9m03qoUQM",
+            "description": "Actor enjoying a drink. No hands were captured in this animation"
+        },
+        {
+            "id": "clip-1776998357966",
+            "title": "Heave and Throw a Heavy Item",
+            "adminTitle": "Captury_Jason_S8_Heave_and_Throw_Hard",
+            "url": "https://youtu.be/hjKnEVSBH94",
+            "description": "Actor picking up a heavy object and throwing it. No hands were captured in this animation"
+        },
+        {
+            "id": "clip-1776998358167",
+            "title": "Forward Sward Thrust",
+            "adminTitle": "Xsens_Jason_S2_Stab_Thrust_Hard",
+            "url": "https://youtu.be/3jYFzoiO8pk",
+            "description": "Actor thrusting froward with a sward. No hands were captured in this animation."
+        },
+        {
+            "id": "clip-1776998358411",
+            "title": "Sitting in a Chair",
+            "adminTitle": "Captury_Jason_S6_Sitting_on_Chair_Moderate",
+            "url": "https://youtu.be/AXgnkdI5SDE",
+            "description": "Actor sitting in a chair. No hands were captured in this animation"
+        },
+        {
+            "id": "clip-1777000362709",
+            "title": "Sprinting Animation",
+            "adminTitle": "Captury_Jason_S6_Sprint_Moderate",
+            "url": "https://youtu.be/U7xFbNCgdXk",
+            "description": "Actor performing a sprinting animation. No hands were captured in this animation."
+        },
+        {
+            "id": "clip-1777000363093",
+            "title": "Double Leg Takedown",
+            "adminTitle": "Xsens_Jason_S10b_Double_Leg_Takedown__Hard",
+            "url": "https://youtu.be/zzfYrhBRGXA",
+            "description": "Actor performing a double leg takedown move. No hands were captured in this animation."
+        },
+        {
+            "id": "clip-1777000363583",
+            "title": "Exiting a Vehicle",
+            "adminTitle": "CatsEye_Thekla_S06_Vehicle_Exit_Moderate",
+            "url": "https://youtu.be/CV1EV-Q-4gE",
+            "description": "Actor exiting a vehicle and walking a way. No hands were captured in this animation."
         }
     ]
 }
