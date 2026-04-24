@@ -91,7 +91,7 @@ const STYLESHEET = `
 .clip-title { font-size: 1.5rem; font-weight: 300; color: #ffffff; margin: 0; line-height: 1.4; }
 .clip-description { color: #71717a; font-size: 0.875rem; line-height: 1.5; white-space: pre-wrap; margin-top: 0.5rem; }
 
-.video-wrap { width: 100%; aspect-ratio: 16 / 9; background-color: #000000; border-radius: 0.75rem; overflow: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid #27272a; margin-top: 0.5rem; margin-bottom: 1.5rem; transition: transform 0.3s ease; transform-origin: center; }
+.video-wrap { width: 100%; aspect-ratio: 16 / 9; background-color: #000000; border-radius: 0.75rem; overflow: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid #27272a; margin-top: 0.5rem; margin-bottom: 1.5rem; transform-origin: center; }
 .video-element { width: 100%; height: 100%; border: none; object-fit: contain; }
 .video-controls-card { background-color: rgba(24, 24, 27, 0.4); padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(39, 39, 42, 0.8); margin-top: 2.5rem; }
 @media (min-width: 768px) { .video-controls-card { padding: 2rem; } }
@@ -318,10 +318,14 @@ const ISSUE_OPTIONS = [
     "Finger Issues",
     "Foot Skating",
     "Ground Penetration",
+    "Mesh Collision",
     "Missing Armature/Appendature",
-    "Unnatural Movement",
+    "Unnatural Body Movement",
+    "Unnatural Joint/Armature Movement",
+    "Wrist Issues",
     "Joint Popping",
-    "Jitter"
+    "Jitter (Animation or Mesh)",
+    "Unidentifiable Animation"
 ];
 
 const ADMIN_PASSCODE = import.meta.env.VITE_ADMIN_PASSCODE || 'admin123';
